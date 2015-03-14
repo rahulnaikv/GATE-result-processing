@@ -1,4 +1,4 @@
-package cdac.in.result;
+package cdac.in.gate.result;
 
 import java.util.List;
 import java.util.ArrayList;
