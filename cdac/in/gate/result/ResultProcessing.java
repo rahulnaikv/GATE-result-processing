@@ -20,8 +20,8 @@ import java.util.TreeSet;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 
-import cdac.in.result.StdStats;
-import cdac.in.util.QRCodeGenerator;
+import cdac.in.gate.result.StdStats;
+import cdac.in.gate.util.QRCodeGenerator;
 
 
 /**

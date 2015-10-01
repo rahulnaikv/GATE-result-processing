@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -12,7 +13,7 @@ import java.util.Iterator;
 /**
 *@author Chandra Shekhar
 *@email shekhar@cdac.in
-*@date 18/02/2014
+*@date 01/10/2015
 *
 */
 
@@ -40,7 +41,7 @@ class QuestionReport{
 
 	void print(){
 
-		Map<String, Integer> answersMap = new HashMap<String, Integer>();
+		Map<String, Integer> answersMap = new TreeMap<String, Integer>();
 
 		for(int i = 0; i < answers.size(); i++ ){
 			Integer n = (Integer) answersMap.get( answers.get(i) );
@@ -54,16 +55,30 @@ class QuestionReport{
 		}
 		
 		if( wrong >  correct){
+
 			Iterator it = answersMap.entrySet().iterator();
 			String option = null;
 			Integer count = 0 ;
-			System.out.print(question.Id+",AT:"+attempt+",CR:"+correct+",WO:"+wrong+",AN:"+question.getAnswer()+", ");
+			String answer = String.format("%0$-17s", question.getAnswer() );
+			
+			System.out.format(" ___________________________________\n");
+			System.out.format("| Question No   | %-4s              |\n", question.Id );
+			System.out.format("| Total Attempt | %-4d              |\n", attempt );
+			System.out.printf("| Correct       | %-4d(%02.2f %%)     |\n",correct, (float)(( (float) correct / attempt ) * 100) );
+			System.out.printf("| Wrong         | %-4d(%02.2f %%)     |\n",wrong, (float)(( (float) wrong/attempt ) * 100 ) );
+			System.out.format("| Answer        | %s |\n", answer );
+			System.out.format("|___________________________________|\n");
+			System.out.format("| OPTION        | COUNT             |\n");
+			System.out.format("|_______________|___________________|\n");
+
                 	while ( it.hasNext() ) {
                         	Map.Entry pairs = (Map.Entry)it.next();
 				String o = (String) pairs.getKey();
+				o = String.format("%0$-13s",o );
 				int c = ((Integer) pairs.getValue()).intValue();
-				System.out.print("("+o+"|"+c+"),");
+				System.out.printf("| %s | %-4d(%02.2f %%)      |\n",o, c, (float) ( ( (float) c / attempt ) * 100 ) );
 			}		
+			System.out.format("|_______________|___________________|\n");
 			System.out.println();
 		}
 	}
@@ -71,7 +86,7 @@ class QuestionReport{
 
 public class Analysis{	
 	
-	HashMap<String,QuestionReport> qReports = new HashMap<String,QuestionReport>();
+	Map<String,QuestionReport> qReports = new TreeMap<String,QuestionReport>();
 
 	void PaperAnalyis(Session session){
 
@@ -80,6 +95,7 @@ public class Analysis{
 		System.out.println("[ Session "+session.id+" Question Analysis ]");
 
 		//for(int i = 0; i <  session.zeroPointOnePercent; i++){
+
 		for(int i = 0; i < 100; i++){
 
 			Candidate can = session.listOfCandidate.get(i);
@@ -90,7 +106,6 @@ public class Analysis{
 				Question question = session.listOfQuestions.get(j);
 				QuestionReport report = qReports.get( session.id+"_"+question.Id );
 
-				
 				if( report == null){
 					report = new QuestionReport( question );
 					report.sessionId = session.id;
@@ -118,10 +133,15 @@ public class Analysis{
 	}		
 
 	void print( String sessionId ){
+
 		Iterator it = qReports.entrySet().iterator();
+
                 while ( it.hasNext() ) {
+
                         Map.Entry pairs = (Map.Entry)it.next();
+
                         QuestionReport qr = (QuestionReport) pairs.getValue();
+
 		        if( qr.sessionId.equals( sessionId ) )			
                         	qr.print();
                 }      
