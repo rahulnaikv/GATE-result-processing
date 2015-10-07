@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.text.DecimalFormat;
 
 /**
 *@author Chandra Shekhar
@@ -59,27 +60,33 @@ class QuestionReport{
 			Iterator it = answersMap.entrySet().iterator();
 			String option = null;
 			Integer count = 0 ;
-			String answer = String.format("%0$-17s", question.getAnswer() );
-			
-			System.out.format(" ___________________________________\n");
-			System.out.format("| Question No   | %-4s              |\n", question.Id );
-			System.out.format("| Total Attempt | %-4d              |\n", attempt );
-			System.out.printf("| Correct       | %-4d(%02.2f %%)     |\n",correct, (float)(( (float) correct / attempt ) * 100) );
-			System.out.printf("| Wrong         | %-4d(%02.2f %%)     |\n",wrong, (float)(( (float) wrong/attempt ) * 100 ) );
-			System.out.format("| Answer        | %s |\n", answer );
-			System.out.format("|___________________________________|\n");
-			System.out.format("| OPTION        | COUNT             |\n");
-			System.out.format("|_______________|___________________|\n");
 
-                	while ( it.hasNext() ) {
-                        	Map.Entry pairs = (Map.Entry)it.next();
-				String o = (String) pairs.getKey();
-				o = String.format("%0$-13s",o );
-				int c = ((Integer) pairs.getValue()).intValue();
-				System.out.printf("| %s | %-4d(%02.2f %%)      |\n",o, c, (float) ( ( (float) c / attempt ) * 100 ) );
-			}		
-			System.out.format("|_______________|___________________|\n");
-			System.out.println();
+			String answer = String.format("%0$-17s", question.getAnswer() );
+			DecimalFormat formatter = new DecimalFormat("00.00");
+            String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
+            String wronper = formatter.format((float)(( (float) wrong/attempt ) * 100 ));
+
+            System.out.format(" ___________________________________\n");
+            System.out.format("| Question No   | %-4s              |\n", question.Id );
+            System.out.format("| Total Attempt | %-4d              |\n", attempt );
+            System.out.printf("| Correct       | %-4d(%s%%)      |\n",correct, corrper );
+            System.out.printf("| Wrong         | %-4d(%s%%)      |\n",wrong, wronper );
+            System.out.format("| Answer        | %s |\n", answer );
+            System.out.format("|___________________________________|\n");
+            System.out.format("| OPTION        | COUNT             |\n");
+            System.out.format("|_______________|___________________|\n");
+
+            while ( it.hasNext() ) {
+                    Map.Entry pairs = (Map.Entry)it.next();
+                    String o = (String) pairs.getKey();
+                    o = String.format("%0$-13s",o );
+                    int c = ((Integer) pairs.getValue()).intValue();
+                    String output = formatter.format((float) ( ( (float) c / attempt ) * 100 ));
+                    System.out.format("| %s |%-4d(%s%%)       |\n",o, c, output );
+            }
+
+            System.out.format("|_______________|___________________|\n");
+            System.out.println();
 		}
 	}
 }

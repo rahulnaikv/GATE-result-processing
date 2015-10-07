@@ -1146,9 +1146,12 @@ class Paper{
 
 		mTgBar = StdStats.mean( marks, 0, zeroPointOnePercent - 1 );
 
+		/*
         for(int i = 0;  i < 186; i++)
                 System.out.print(marks[i]+" + " );    
         System.out.println(" => "+ marks.length);        
+		*/
+
 		mTBar = StdStats.mean( marks, 0, maxOf10OR01per - 1 ); 
 
 		mean = StdStats.mean( marks );
@@ -1805,14 +1808,15 @@ public class ResultProcessing{
 				for(int i = 3, qn = 0; i < typeToken.length; i++, qn++ ){
 
 					Question question  =  null;					
+                    String questionId = "Q"+(i-2);
+
+                    if( (i-2) < 10)
+                        questionId = "Q0"+(i-2);
 
 					if( typeToken[i].equals("MCQ")  ){
-
-						//System.out.println( sectionToken.length+", "+ keyToken.length+", "+marksToken.length) ;
-						question = new MultipalChocie("Q"+(i-2), sectionToken[i].trim(), keyToken[i].trim(), marksToken[i].trim() );
-
+						question = new MultipalChocie(questionId, sectionToken[i].trim(), keyToken[i].trim(), marksToken[i].trim() );
 					}else if( typeToken[i].equals("NAT")  ){
-						question = new RangeQuestion("Q"+(i-2), sectionToken[i].trim(), keyToken[i].trim(), marksToken[i].trim() );
+						question = new RangeQuestion(questionId, sectionToken[i].trim(), keyToken[i].trim(), marksToken[i].trim() );
 					}
 
 					if( question == null ){
