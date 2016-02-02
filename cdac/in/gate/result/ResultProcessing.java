@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,6 +85,7 @@ class CodeMapping{
 
 	static HashMap<String, String> paperCodeMap = new HashMap<String, String>();
 	static HashMap<String, String> sectionCodeMap = new HashMap<String, String>();
+	static HashMap<String, String> categoryMap = new HashMap<String, String>();
 
 	static{
 
@@ -105,6 +107,7 @@ class CodeMapping{
 		paperCodeMap.put("PH", "Physics");			 			
 		paperCodeMap.put("CY", "Chemistry");						
 		paperCodeMap.put("PI", "Production and Industrial Engineering");		
+		paperCodeMap.put("PE", "Petroleum Engineering");		
 		paperCodeMap.put("EC", "Electronics and Communication Engineering");		
 		paperCodeMap.put("TF", "Textile Engineering and Fibre Science");		
 		paperCodeMap.put("EE", "Electrical Engineering");			 	
@@ -129,6 +132,13 @@ class CodeMapping{
 		sectionCodeMap.put("F", "Polymer Science and Engineering");
 		sectionCodeMap.put("M", "Food Technology");
 		sectionCodeMap.put("G", "Food Technology");
+
+		/* Category Mapping */
+
+		categoryMap.put("1", "GEN");
+		categoryMap.put("2", "OBC");
+		categoryMap.put("3", "SC");
+		categoryMap.put("4", "ST");
 	}	
 }
 
@@ -172,7 +182,7 @@ class DigitalSignature{
 
 	public static String getDigitalSignature(String message){
 
-		String salt = "2015gAtE";
+		String salt = "2016gAtE";
 		message = message+""+salt;
 		md.reset();
 		md.update( message.getBytes() );
@@ -1191,45 +1201,45 @@ class Paper{
 
 	void header1( ){
 		if( Print.info ){
-			System.out.println(" _________________________________________________________________________________________________________________________________________________________");
-			System.out.println("|        |             |                                     |         |          |                 |           |       |       |             |           |");
-			System.out.println("| Rank   | Reg-Number  | Name                                | Session | Raw-Mark | NormalisedMarks | GATEScore | CatID | PwD   | Qualified   | Section   |");
-			System.out.println("|________|_____________|_____________________________________|_________|__________|_________________|___________|_______|_______|_____________|___________|");
+			System.out.println(" ___________________________________________________________________________________________________________________________________________________________________________________________");
+			System.out.println("|        |              |                                     |         |          |                 |           |       |       |             |                                            |");
+			System.out.println("| Rank   | Reg-Number   | Name                                | Session | Raw-Mark | NormalisedMarks | GATEScore | CatID | PwD   | Qualified   |      Section                               |");
+			System.out.println("|________|______________|_____________________________________|_________|__________|_________________|___________|_______|_______|_____________|____________________________________________|");
 		}else{
-			System.out.println(" _______________________________________________________________________________________");
-			System.out.println("|        |              |         |          |                 |           |            |");
-			System.out.println("| Rank   | Reg-Number   |Session  | Raw-Mark | NormalisedMarks | GATEScore | Section    |");
-			System.out.println("|________|______________|_________|__________|_________________|___________|____________|");
+			System.out.println(" _______________________________________________________________________________________________________________________");
+			System.out.println("|        |              |         |          |                 |           |                                            |");
+			System.out.println("| Rank   | Reg-Number   |Session  | Raw-Mark | NormalisedMarks | GATEScore |               Section                      |");
+			System.out.println("|________|______________|_________|__________|_________________|___________|____________________________________________|");
 		}
 	}
 
 	void footer1(){
 		if( Print.info ){
-			System.out.println("|________|_____________|_____________________________________|_________|__________|_________________|___________|_______|_______|_____________|___________|");
+			System.out.println("|________|______________|_____________________________________|_________|__________|_________________|___________|_______|_______|_____________|____________________________________________|");
 		}else{
-			System.out.println("|________|______________|_________|__________|_________________|___________|____________|");
+			System.out.println("|________|______________|_________|__________|_________________|___________|____________________________________________|");
 		}
 	}
 
 	void footer0( ){
 		if( Print.info ){		
-			System.out.println("|________|_____________|____________________|__________|_____________|_________________|_________________|___________|__________________|_______|_______|___________|___________|");
+			System.out.println("|________|_____________|____________________|__________|_____________|_________________|_________________|___________|__________________|_______|_______|___________|____________________________________________|");
 		}else{
-			System.out.println("|________|_____________|_________|__________|_____________|_________________|___________|__________________|___________|");
+			System.out.println("|________|_____________|_________|__________|_____________|_________________|___________|__________________|____________________________________________|");
 		}
 	}
 
 	void header0( ){
 		if( Print.info ){
-			System.out.println(" ________________________________________________________________________________________________________________________________________________________________________________________");
-			System.out.println("|        |             |                                     |         |          |             |                 |           |                  |       |       |           |           |");
-			System.out.println("| Rank   | Reg-Number  | Name                                | Session | Raw-Mark | Actual-Mark | NormalisedMarks | GATEScore | Actual GATEScore | CatID | Pwd   | Qualified | Section   |");
-			System.out.println("|________|_____________|_____________________________________|_________|__________|_____________|_________________|___________|__________________|_______|_______|___________|___________|");
+			System.out.println(" ________________________________________________________________________________________________________________________________________________________________________________________________________________________");
+			System.out.println("|        |              |                                     |         |          |             |                 |           |                  |       |       |           |                                            |");
+			System.out.println("| Rank   | Reg-Number   | Name                                | Session | Raw-Mark | Actual-Mark | NormalisedMarks | GATEScore | Actual GATEScore | CatID | Pwd   | Qualified |                 Section                    |");
+			System.out.println("|________|______________|_____________________________________|_________|__________|_____________|_________________|___________|__________________|_______|_______|___________|____________________________________________|");
 		}else{
-			System.out.println(" ______________________________________________________________________________________________________________________");
-			System.out.println("|        |             |         |          |             |                 |           |                  |           |");
-			System.out.println("| Rank   | Reg-Number  | Session | Raw-Mark | Actual-Mark | NormalisedMarks | GATEScore | Actual GATEScore | Section   |");
-			System.out.println("|________|_____________|_________|__________|_____________|_________________|___________|__________________|___________|");
+			System.out.println(" _______________________________________________________________________________________________________________________________________________________");
+			System.out.println("|        |             |         |          |             |                 |           |                  |                                            |");
+			System.out.println("| Rank   | Reg-Number  | Session | Raw-Mark | Actual-Mark | NormalisedMarks | GATEScore | Actual GATEScore |                 Section                    |");
+			System.out.println("|________|_____________|_________|__________|_____________|_________________|___________|__________________|____________________________________________|");
 		}
 	}
 
@@ -1401,7 +1411,7 @@ class Paper{
 
 			if( !multiSession )
 				NRMark = "Not Applicable";
-				System.out.print(c.paperCode+""+c.rollNumber+","+c.info.applicationId+","+c.info.name+","+c.info.category+","+c.info.isPd+","+c.paperCode+","+CodeMapping.paperCodeMap.get( c.paperCode.trim() )+",");
+				System.out.print(c.paperCode+""+c.rollNumber+","+c.info.applicationId+","+c.info.name+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.paperCode+","+CodeMapping.paperCodeMap.get( c.paperCode.trim() )+",");
 
 			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") )  ){
 
@@ -1412,10 +1422,10 @@ class Paper{
 					System.out.print(section+","+CodeMapping.sectionCodeMap.get( section.trim() )+", ");
 				}	
 				if( c.sections.size() == 1)	
-					System.out.print(", , ");
+					System.out.print(" , , ");
 			}
 			else{
-				System.out.print(", , , , ");
+				System.out.print(" , , , , ");
 			}
 			double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 
@@ -1436,8 +1446,6 @@ class Paper{
 				System.out.println("Candidate information is msssing");
 				return;
 			}
-			c.photoPath="photo/"+c.paperCode+""+c.rollNumber;
-			c.signaturePath="signature/"+c.paperCode+""+c.rollNumber;
 			c.digitalFP = DigitalSignature.getDigitalSignature( c.paperCode+""+c.rollNumber+""+c.name+""+c.info.category+""+c.info.gender+""+c.rawMark+""+c.GATEScore+""+c.rank);
 			c.qrCode = QRCodeGenerator.getCode(); 	
 
@@ -1464,7 +1472,7 @@ class Paper{
 			}
 
 			double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
-			System.out.println(c.info.name+","+listOfCandidate.size()+","+rMark+","+NRMark+","+c.GATEScore+","+c.rank+","+c.info.category+","+c.info.isPd+","+c.info.scribe+","+c.info.nationality+","+c.info.gender+","+c.info.dob+","+c.info.qualifiyngDegree+","+c.info.qualifiyngDiscipline+","+c.info.qualifyingYear+","+c.info.phone+","+c.info.perState+","+c.info.parentName+","+c.info.email+",\""+c.info.address1+"\",\""+c.info.address2+"\",\""+c.info.address3+"\","+c.info.city+","+c.info.state+","+c.info.pincode+","+c.digitalFP+","+c.photoPath+","+c.signaturePath+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
+			System.out.println(c.info.name+","+listOfCandidate.size()+","+rMark+","+NRMark+","+c.GATEScore+","+c.rank+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.info.scribe+","+c.digitalFP+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
 
 		}
 
@@ -1486,50 +1494,20 @@ class CandidateInfo{
 	String name;
 	String parentName;
 	String category;
-	String address1;
-	String address2;
-	String address3;
-	String city;
-	String perState;
-
-	String pincode;
-	String nationality;
 	String gender;
 	String dob;
-	String qualifiyngDegree;
-	String qualifiyngDiscipline;
-	String qualifyingYear;
-	String phone;
-	String email;
-	String state;
 
 	boolean scribe;	
 	boolean isPd;
 
-	CandidateInfo( String applicationId, String name, String parentName, String dob, String gender, String nationality, String category, String isPd, String scribe, String perState, String email, String phone, String pincode, String qualifiyngDegree, String qualifiyngDegreeDiscipline, String address1, String address2, String address3, String city, String state, String qualifyingYear) {
+	CandidateInfo(String applicationId, String name, String parentName, String dob, String gender, String category, String isPd, String scribe ) {
 
 		this.applicationId = applicationId;                 
 		this.name = name;
 		this.parentName = parentName;
 		this.category = category;
-		this.address1 = address1;
-		this.address2 = address2;
-		this.address3 = address3;
-		this.city = city;
-		this.perState = perState;
-
-		this.pincode = pincode;
-		this.nationality = nationality;
 		this.gender = gender;
 		this.dob = dob;
-
-		this.qualifiyngDegree = qualifiyngDegree;
-		this.qualifiyngDiscipline = qualifiyngDegreeDiscipline;
-		this.qualifyingYear = qualifyingYear;
-
-		this.phone = phone;
-		this.email = email;
-		this.state = state;
 
 		if( scribe.trim().equals("t"))
 			this.scribe = true;	
@@ -1539,7 +1517,7 @@ class CandidateInfo{
 	}
 
 	String print(){
-		String out = applicationId+","+name+", "+parentName+", "+dob+", "+gender+", "+nationality+", "+scribe+", "+email+", "+phone+", "+pincode+", "+qualifiyngDegree+", "+address1+", "+address2+", "+address3+", "+city+", "+state;
+		String out = applicationId+","+name+", "+parentName+", "+dob+", "+gender+", "+CodeMapping.categoryMap.get(category)+", "+isPd+", "+scribe;
 		return out.trim();
 	}
 }
@@ -1561,10 +1539,9 @@ class Candidate {
 	double actualNormalisedMark;
 	int GATEScore;
 	double actualGATEScore;
+	Map<String, Double> sectionWiseMarks;
 
 	String digitalFP;
-	String photoPath;
-	String signaturePath;
 	String qrCode;	
 
 	List<Double> marks;
@@ -1585,16 +1562,13 @@ class Candidate {
 		this.normalisedMark = 0.0d;
 		this.rank = -1;
 
-		this.isQualified = false;
-		this.info = null;
 		this.digitalFP = null;
-		this.photoPath = null;
-		this.signaturePath = null;
 		this.qrCode = null;
 
 		marks = new ArrayList<Double>();
 		responses = new ArrayList<Response>();
 		sections = new TreeSet<String>();
+		sectionWiseMarks = new TreeMap<String, Double>();
 	}
 
 	double getRawMarks(){
@@ -1607,6 +1581,35 @@ class Candidate {
 
 	double getNRMark(){
 		return this.normalisedMark;
+	}
+
+	void calculateRawMarks(){
+
+		 if(this.paperCode.equals("GG") ){	
+
+			this.sections = new TreeSet<String>();
+ 			this.rawMark = 0.0d;
+			this.rawMark += sectionWiseMarks.get( "GA" );	
+			this.rawMark += sectionWiseMarks.get( "GG-C" );
+
+			this.sections.add("GA");
+			this.sections.add("GG-C");
+
+			if( sectionWiseMarks.get( "GG-1" ) > sectionWiseMarks.get( "GP-1" ) ){
+				this.rawMark += sectionWiseMarks.get( "GG-1" );
+				this.sections.add("GG-1");
+			}else{
+				this.rawMark += sectionWiseMarks.get( "GP-1" );
+				this.sections.add("GP-1");
+			}
+
+		 }else{
+ 			this.rawMark = 0.0d;
+		 	Set<String> sections = sectionWiseMarks.keySet();
+		 	for(String section: sections){
+					this.rawMark += sectionWiseMarks.get( section );	
+		 	} 	
+		}
 	}
 
 	void print(){
@@ -1660,7 +1663,7 @@ class Candidate {
 				if( Print.actual ){
 					System.out.format("| %5d  | %-11s | %-35s | %-7s | %-8.2f | %-11f | %-15s | %-9d | %-16f | %-5s | %-5b | %-9b | ", rank, paperCode+""+rollNumber, info.name, sessionId, rawMark, actualMark, NrScore , GATEScore, actualGATEScore, info.category, info.isPd, isQualified);
 				}else{
-					System.out.format("| %5d  | %-11s | %-35s | %-7s | %-8.2f | %-15s | %-9d |  %-4s | %-5b | %-11b | ", rank, paperCode+""+rollNumber, info.name, sessionId, rawMark, NrScore, GATEScore, info.category, info.isPd, isQualified );
+					System.out.format("| %5d  | %-11s | %-35s | %-7s | %-8.2f | %-15s | %-9d |  %-4s | %-5b | %-11b | ", rank, paperCode+""+rollNumber, info.name, sessionId, rawMark, NrScore, GATEScore, CodeMapping.categoryMap.get(info.category), info.isPd, isQualified );
 				}
 			}else{
 
@@ -1672,16 +1675,29 @@ class Candidate {
 
 			}
 
+		 	Set<String> sections = sectionWiseMarks.keySet();
+			String sectionString = "";
+			boolean first =  true;
+		 	for(String section: sections){
+				
+				if( section.equals("GA") ){
+					sectionString =  section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section )))+"):"+sectionString;
+				}	
+				else if( first ){	
+					sectionString += section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
+					first = false;
+				}else{
+
+					sectionString += ":"+section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
+
+				}
+			}
+			/*	
 			Iterator<String> itr = sections.iterator();
-
 			String section = "";
-
 			boolean first = true;
-
 			while( itr.hasNext() ){
-
 				String tsection = itr.next().trim();	
-
 				if( first ){
 					section = tsection;	
 					first = false;
@@ -1692,12 +1708,14 @@ class Candidate {
 				}	
 			}
 			System.out.format("%-9s |%n",section);
+			*/
+			System.out.format("%42s |%n",sectionString);
 		}
-
 	}
+
 	void printInfo(){
-		String output =  rank+", "+rollNumber+" ,"+sessionId+", "+rawMark+", "+actualMark+", "+normalisedMark+", "+GATEScore+", "+actualGATEScore+", "+info.category+", "+info.isPd+", "+isQualified;
-		output += ", "+info.print()+", "+photoPath+", "+signaturePath+", "+qrCode+", "+digitalFP;
+		String output =  rank+", "+rollNumber+" ,"+sessionId+", "+rawMark+", "+actualMark+", "+normalisedMark+", "+GATEScore+", "+actualGATEScore+", "+CodeMapping.categoryMap.get(info.category)+", "+info.isPd+", "+isQualified;
+		output += ", "+info.print()+", "+qrCode+", "+digitalFP;
 		System.out.println( output.trim() );
 	}
 }
@@ -1853,17 +1871,22 @@ public class ResultProcessing{
 		return false;
 	}
 
-	void readCandidateInfo(String filename){
+	void readCandidateInfo(String filename, boolean header){
 		try{
 
 			BufferedReader br = new BufferedReader(new FileReader( new File(filename) ) );
 			String line = null;
 
 			while( ( line = br.readLine() ) != null ){
-				String[] tk = line.split("\"?(,|$)(?=(([^\"]*\"){2})*[^\"]*$) *\"?");
 
-				CandidateInfo cinfo = new CandidateInfo( tk[1].trim(), tk[5].trim(), tk[6].trim(), tk[7].trim(), tk[8].trim(), tk[9].trim(), tk[10].trim(), tk[11].trim(), tk[12].trim(), tk[13].trim(), tk[15].trim(), tk[16].trim(), tk[17].trim(), tk[18].trim(), tk[22].trim(), tk[25].trim(), tk[26].trim(), tk[27].trim(),tk[28].trim(), tk[29].trim(), tk[30].trim() ); 
-				candidateInfoMap.put( tk[2].trim(), cinfo );
+				if( header ){
+					header = false;
+					continue;
+				}
+
+				String[] tk = line.split(",", -1);
+				CandidateInfo cinfo = new CandidateInfo( tk[1].trim(), tk[2].trim(), tk[3].trim(), tk[4].trim(), tk[5].trim(), tk[6].trim(), tk[7].trim(), tk[8].trim() ); 
+				candidateInfoMap.put( tk[0].trim(), cinfo );
 
 			}
 		}catch(Exception e){
@@ -1926,12 +1949,21 @@ public class ResultProcessing{
 							candidate.responses.add(i, response );
 							candidate.marks.add( mark );
 
-							if( isAttempted( response ) &&  question.section.trim().length() > 0){
+							if( isAttempted( response ) ) { 
+								
+								Double marks = candidate.sectionWiseMarks.get( question.section );	
+								if( marks == null){
+									marks = new Double(0);
+								}
+								marks += mark;
+								candidate.sectionWiseMarks.put( question.section, marks );	
 								candidate.sections.add( question.section );
 							}
 
 							candidate.rawMark += mark;
 						}
+
+						candidate.calculateRawMarks();
 
 						candidate.actualMark = candidate.rawMark;
 						candidate.rawMark = Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.rawMark ));
@@ -2004,7 +2036,7 @@ public class ResultProcessing{
 		readKey( keyFile );
 
 		if( applicantFile != null ){
-			readCandidateInfo( applicantFile );
+			readCandidateInfo( applicantFile, true );
 		}	
 
 		readCandidateAndRawMarkCalulation( resFile );
