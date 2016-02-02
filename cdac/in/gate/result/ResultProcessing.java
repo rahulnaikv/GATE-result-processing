@@ -1794,13 +1794,13 @@ public class ResultProcessing{
 
 			boolean firstline = true;
 			int count = 0;
-
 			while( ( questionType = br.readLine() ) != null ){
 
 				if( firstline ){
 					firstline = false;
 					continue;
 				}
+
 				sectionName = br.readLine();
 				questionKey = br.readLine();
 				questionMarks = br.readLine();
@@ -1884,7 +1884,7 @@ public class ResultProcessing{
 					continue;
 				}
 
-				String[] tk = line.split(",", -1);
+				String[] tk = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 				CandidateInfo cinfo = new CandidateInfo( tk[1].trim(), tk[2].trim(), tk[3].trim(), tk[4].trim(), tk[5].trim(), tk[6].trim(), tk[7].trim(), tk[8].trim() ); 
 				candidateInfoMap.put( tk[0].trim(), cinfo );
 
@@ -1915,12 +1915,13 @@ public class ResultProcessing{
 					continue;
 
 				String options = br.readLine();
-				String rtoken[] = line.split(",");
-				String otoken[] = options.split(",");
+
+				String rtoken[] = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+				String otoken[] = options.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+
 				String rollNumber = rtoken[1].trim();
 				String name = rtoken[2].trim();
-
-				String paperCode = rtoken[9].trim().substring(0,2);
+				String paperCode = rtoken[10].trim().substring(0,2);
 
 				Paper paper = paperMap.get( paperCode );
 
@@ -1928,20 +1929,21 @@ public class ResultProcessing{
 
 				if( paper != null ){
 
-					rollNumber = rollNumber.substring(2);	
-					String sessionId = rollNumber.substring(6,7);
+					String sessionId = rollNumber.substring(5,6);
+					System.err.println("sessionId "+ sessionId+" "+rollNumber);
+
 					Session session = paper.sessionMap.get( sessionId );
 
 					if( session != null ){
 
 						candidate = new Candidate( rollNumber, name, sessionId, paperCode );
-						CandidateInfo ci = candidateInfoMap.get( (paperCode+""+rollNumber).trim() );
+						CandidateInfo ci = candidateInfoMap.get( rollNumber );
 
 						if( ci != null ){
 							candidate.info = ci;
 						}
 
-						for(int i = 0, r = 11; i < session.listOfQuestions.size(); i++, r++){
+						for(int i = 0, r = 12; i < session.listOfQuestions.size(); i++, r++){
 
 							Response response = new Response( rtoken[r], otoken[r] );
 							Question question = session.listOfQuestions.get(i);
