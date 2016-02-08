@@ -12,145 +12,186 @@ import java.util.Iterator;
 import java.text.DecimalFormat;
 
 /**
-*@author Chandra Shekhar
-*@email shekhar@cdac.in
-*@date 01/10/2015
-*
-*/
+ *@author Chandra Shekhar
+ *@email shekhar@cdac.in
+ *@date 08/02/2016
+ *
+ */
 
 class QuestionReport{
 
-	Question question;
-	String sessionId;
-	int notAttempt;	
-	int attempt;
-	int correct;
-	int wrong;
-	boolean flag;
+		Question question;
+		String sessionId;
+		int notAttempt;	
+		int attempt;
+		int correct;
+		int wrong;
+		boolean flag;
 
-	List<String> answers; 
-	
-	QuestionReport(Question question){
-		this.question = question;
-		this.sessionId = null;
-		answers = new ArrayList<String>();
-		attempt = 0;
-		notAttempt = 0;
-		correct = 0;
-		wrong = 0;
-	}	
+		List<String> answers; 
 
-	void print(){
+		QuestionReport(Question question){
 
-		Map<String, Integer> answersMap = new TreeMap<String, Integer>();
+				this.question = question;
+				this.sessionId = null;
+				answers = new ArrayList<String>();
+				attempt = 0;
+				notAttempt = 0;
+				correct = 0;
+				wrong = 0;
+		}	
 
-		for(int i = 0; i < answers.size(); i++ ){
-			Integer n = (Integer) answersMap.get( answers.get(i) );
-			if( n != null){
-				n = new Integer( n.intValue() + 1 );
-				answersMap.put( answers.get(i), n);
-			}
-			else{
-				answersMap.put( answers.get(i), new Integer("1"));
-			}
+		static void header(){
+				System.out.println("Question No , Total Attempt(top 100), Correct Attempt(%), Wrong Attempt(%), Correct Answer, Actual Attempts ... ");
 		}
-		
-		if( wrong >  correct){
 
-			Iterator it = answersMap.entrySet().iterator();
-			String option = null;
-			Integer count = 0 ;
+		void print( boolean flag){
 
-			String answer = String.format("%0$-17s", question.getAnswer() );
-			DecimalFormat formatter = new DecimalFormat("00.00");
-            String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
-            String wronper = formatter.format((float)(( (float) wrong/attempt ) * 100 ));
+				Map<String, Integer> answersMap = new TreeMap<String, Integer>();
+				for(int i = 0; i < answers.size(); i++ ){
+						Integer n = (Integer) answersMap.get( answers.get(i) );
+						if( n != null){
+								n = new Integer( n.intValue() + 1 );
+								answersMap.put( answers.get(i), n);
+						}
+						else{
+								answersMap.put( answers.get(i), new Integer("1"));
+						}
+				}
 
-            System.out.format(" ___________________________________\n");
-            System.out.format("| Question No   | %-4s              |\n", question.Id );
-            System.out.format("| Total Attempt | %-4d              |\n", attempt );
-            System.out.printf("| Correct       | %-4d(%s%%)      |\n",correct, corrper );
-            System.out.printf("| Wrong         | %-4d(%s%%)      |\n",wrong, wronper );
-            System.out.format("| Answer        | %s |\n", answer );
-            System.out.format("|___________________________________|\n");
-            System.out.format("| OPTION        | COUNT             |\n");
-            System.out.format("|_______________|___________________|\n");
+				if (wrong > correct ){
+						String answer = String.format("%0$-17s", question.getAnswer() );
+						DecimalFormat formatter = new DecimalFormat("00.00");
+						String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
+						String wronper = formatter.format((float)(( (float) wrong/attempt ) * 100 ));
+						System.out.print(question.Id+", "+attempt+", "+correct+" ("+ corrper+" %), "+wrong+" ("+wronper+" %), "+answer+", ");
+						Iterator it = answersMap.entrySet().iterator();
+						while ( it.hasNext() ) {
+								Map.Entry pairs = (Map.Entry)it.next();
+								String o = (String) pairs.getKey();
+								o = String.format("%0$-13s",o );
+								int c = ((Integer) pairs.getValue()).intValue();
+								String output = formatter.format((float) ( ( (float) c / attempt ) * 100 ));
+								System.out.print(o+" ("+c+"|"+output+" %), ");
+						}
+						System.out.println();
+				}	
 
-            while ( it.hasNext() ) {
-                    Map.Entry pairs = (Map.Entry)it.next();
-                    String o = (String) pairs.getKey();
-                    o = String.format("%0$-13s",o );
-                    int c = ((Integer) pairs.getValue()).intValue();
-                    String output = formatter.format((float) ( ( (float) c / attempt ) * 100 ));
-                    System.out.format("| %s |%-4d(%s%%)       |\n",o, c, output );
-            }
-
-            System.out.format("|_______________|___________________|\n");
-            System.out.println();
 		}
-	}
+
+		void print(){
+
+				Map<String, Integer> answersMap = new TreeMap<String, Integer>();
+
+				for(int i = 0; i < answers.size(); i++ ){
+						Integer n = (Integer) answersMap.get( answers.get(i) );
+						if( n != null){
+								n = new Integer( n.intValue() + 1 );
+								answersMap.put( answers.get(i), n);
+						}
+						else{
+								answersMap.put( answers.get(i), new Integer("1"));
+						}
+				}
+
+				if( wrong >  correct){
+
+						Iterator it = answersMap.entrySet().iterator();
+						String option = null;
+						Integer count = 0 ;
+
+						String answer = String.format("%0$-17s", question.getAnswer() );
+						DecimalFormat formatter = new DecimalFormat("00.00");
+						String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
+						String wronper = formatter.format((float)(( (float) wrong/attempt ) * 100 ));
+
+						System.out.format(" ___________________________________\n");
+						System.out.format("| Question No   | %-4s              |\n", question.Id );
+						System.out.format("| Total Attempt | %-4d              |\n", attempt );
+						System.out.printf("| Correct       | %-4d(%s%%)      |\n",correct, corrper );
+						System.out.printf("| Wrong         | %-4d(%s%%)      |\n",wrong, wronper );
+						System.out.format("| Answer        | %s |\n", answer );
+						System.out.format("|___________________________________|\n");
+						System.out.format("| OPTION        | COUNT             |\n");
+						System.out.format("|_______________|___________________|\n");
+
+						while ( it.hasNext() ) {
+								Map.Entry pairs = (Map.Entry)it.next();
+								String o = (String) pairs.getKey();
+								o = String.format("%0$-13s",o );
+								int c = ((Integer) pairs.getValue()).intValue();
+								String output = formatter.format((float) ( ( (float) c / attempt ) * 100 ));
+								System.out.format("| %s |%-4d(%s%%)       |\n",o, c, output );
+						}
+
+						System.out.format("|_______________|___________________|\n");
+						System.out.println();
+				}
+		}
 }
 
 public class Analysis{	
-	
-	Map<String,QuestionReport> qReports = new TreeMap<String,QuestionReport>();
 
-	void PaperAnalyis(Session session){
+		Map<String, QuestionReport> qReports = new TreeMap<String,QuestionReport>();
 
-		Collections.sort( session.listOfCandidate, new RawMarksComp() );
-		System.out.println();
-		System.out.println("[ Session "+session.id+" Question Analysis ]");
+		void PaperAnalyis(Session session){
 
-		//for(int i = 0; i <  session.zeroPointOnePercent; i++){
+				Collections.sort( session.listOfCandidate, new RawMarksComp() );
+				System.out.println();
+				System.out.println("[ Session "+session.id+" Question Analysis ]");
 
-		for(int i = 0; i < 100; i++){
+			    if( ResultProcessing.analysisView )
+					System.out.println(" ___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________");
 
-			Candidate can = session.listOfCandidate.get(i);
+				for(int i = 0; i < 100; i++){
+						Candidate can = session.listOfCandidate.get(i);
 
-			for(int j = 0; j < can.responses.size(); j++){
-				
-				Response response =  can.responses.get(j);	
-				Question question = session.listOfQuestions.get(j);
-				QuestionReport report = qReports.get( session.id+"_"+question.Id );
+					    if( ResultProcessing.analysisView )
+							can.printTop();
 
-				if( report == null){
-					report = new QuestionReport( question );
-					report.sessionId = session.id;
+						for(int j = 0; j < can.responses.size(); j++){
+								Response response =  can.responses.get(j);	
+								Question question = session.listOfQuestions.get(j);
+								QuestionReport report = qReports.get( session.id+"_"+question.Id );
+								if( report == null){
+										report = new QuestionReport( question );
+										report.sessionId = session.id;
+								}
+
+								if( response.answer.equals("--") ){
+										report.notAttempt++;
+								}else{
+										report.attempt++;
+										if( question.eval(response) > 0){
+												report.correct++;
+										}else{
+												report.wrong++;
+										}
+
+										if( question.type().equals("NAT") )	
+												report.answers.add( response.options );
+										else
+												report.answers.add( response.answer );
+								}
+								qReports.put( session.id+"_"+question.Id, report );
+						}
 				}
+				print();
+		}		
 
-				if( response.answer.equals("--") ){
-					report.notAttempt++;
-				}else{
-					report.attempt++;
-					if( question.eval(response) > 0){
-						report.correct++;
-					}else{
-						report.wrong++;
-					}
+		void print(){
 
-					if( question.type().equals("NAT") )	
-						report.answers.add( response.options );
-					else
-						report.answers.add( response.answer );
-				}
-				qReports.put( session.id+"_"+question.Id, report );
-			}
+				Iterator it = qReports.entrySet().iterator();
+			    if( ResultProcessing.analysisView )
+					QuestionReport.header();
+
+				while ( it.hasNext() ) {
+						Map.Entry pairs = (Map.Entry)it.next();
+						QuestionReport qr = (QuestionReport) pairs.getValue();
+					    if( ResultProcessing.analysisView )
+							qr.print( true );
+						else
+							qr.print( );
+				}      
 		}
-		print( session.id );
-	}		
-
-	void print( String sessionId ){
-
-		Iterator it = qReports.entrySet().iterator();
-
-                while ( it.hasNext() ) {
-
-                        Map.Entry pairs = (Map.Entry)it.next();
-
-                        QuestionReport qr = (QuestionReport) pairs.getValue();
-
-		        if( qr.sessionId.equals( sessionId ) )			
-                        	qr.print();
-                }      
-	}
 }
