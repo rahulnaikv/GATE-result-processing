@@ -143,8 +143,9 @@ public class Analysis{
 			    if( ResultProcessing.analysisView )
 					System.out.println(" ___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________");
 
-				for(int i = 0; i < 100; i++){
-						Candidate can = session.listOfCandidate.get(i);
+				for(int i = 0; i < 500; i++){
+					
+					    Candidate can = session.listOfCandidate.get(i);
 
 					    if( ResultProcessing.analysisView )
 							can.printTop();
@@ -162,7 +163,7 @@ public class Analysis{
 										report.notAttempt++;
 								}else{
 										report.attempt++;
-										if( question.eval(response) > 0){
+										if( question.eval( response, can ) > 0){
 												report.correct++;
 										}else{
 												report.wrong++;
