@@ -530,13 +530,17 @@ class RangeQuestion extends Question{
 		}else if ( response.getAnswer().equals("--") && !response.getOptions().equals("--")){  
 			System.out.println("2. Error in response (NAT) "+response.getOptions()+" "+response.getAnswer());
 			System.exit(0);
-		}else if ( !response.getAnswer().equals("--") && response.getOptions().equals("--") ){
-			System.out.println("3. Error in response (NAT) "+response.getOptions()+" "+response.getAnswer());
-			System.exit(0);
 		}else if( response.getAnswer().equals("--") ){
 			this.NA++;
 			return this.unattempted;
 		}
+
+		try{
+			Double.parseDouble( response.getOptions() ); 
+
+		}catch(Exception e){
+			System.err.println( "Exception in NAT( "+Id+" ) for "+candidate.rollNumber+": <"+response.getOptions()+"> Preprocessed Response: <"+sanitizeNATResponse( response.getOptions() )+">");	
+		}	
 
 		try{
 			double resp =  Double.parseDouble( sanitizeNATResponse( response.getOptions() ) ); 
@@ -551,7 +555,7 @@ class RangeQuestion extends Question{
 			}
 
 		}catch(Exception e){
-			System.err.println( "Exception in NAT( "+Id+" ) for "+candidate.rollNumber+": "+response.getOptions() );	
+
 			return this.invalidResponse;
 		}	
 	}
@@ -572,6 +576,7 @@ class RangeQuestion extends Question{
 		{
 			response = response.substring(0, response.lastIndexOf("-"));
 		}
+
 		if(".".equals(response))
 		{
 			response = "";
@@ -581,7 +586,7 @@ class RangeQuestion extends Question{
 			response = "";
 		}
 		
-		return response;
+	return response;
 	}
 
 	void print(){
@@ -1454,7 +1459,7 @@ class Paper{
 
 			if( !multiSession )
 				NRMark = "Not Applicable";
-			System.out.print(c.paperCode+""+c.rollNumber+","+c.info.applicationId+","+c.info.name+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.paperCode+","+CodeMapping.paperCodeMap.get( c.paperCode.trim() )+",");
+			System.out.print(c.rollNumber+","+c.info.applicationId+","+c.info.name+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.paperCode+","+CodeMapping.paperCodeMap.get( c.paperCode.trim() )+",");
 
 			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") )  ){
 
@@ -1496,7 +1501,7 @@ class Paper{
 			if( !multiSession )
 				NRMark = "Not Applicable";
 
-			System.out.print(c.paperCode+""+c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2016 ,"+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim())+", ");
+			System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2016 ,"+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim())+", ");
 
 			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") ) ){
 
