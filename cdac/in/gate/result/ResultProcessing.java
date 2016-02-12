@@ -368,7 +368,7 @@ class MultipalChocie extends Question{
 	double eval( Response response, Candidate candidate ){
 		try{	
 			if( response == null ){
-				System.out.println("1. Error in response (MCQ) "+response.getAnswer() );
+				System.err.println("1. Error response in MCQ( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 				System.exit(0);
 			}
 
@@ -385,14 +385,12 @@ class MultipalChocie extends Question{
 				return unattempted;
 
 			}else if( options.indexOf( response.getAnswer().charAt(0) ) < 0 ){
-
-				System.out.println("2. Error in response (MCQ) "+response.getAnswer() );
+				System.err.println("2. Error response in MCQ( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 				System.exit(0);
 
 			}else if( this.answer.length() > 1 ){
 
 				String[] answers = this.answer.split(";");
-
 				for(int i = 0; i < answers.length; i++){
 					if( response.getAnswer().charAt(0) == answers[i].charAt(0) ){
 						this.AT++;
@@ -416,7 +414,7 @@ class MultipalChocie extends Question{
 			}
 
 		}catch(Exception e){
-			System.out.println("3. Error in response (MCQ) "+response.getAnswer() );
+			System.err.println("3. Error response in MCQ( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 			System.exit(0);
 		}
 
@@ -515,7 +513,7 @@ class RangeQuestion extends Question{
 	double eval(Response response, Candidate candidate){
 
 		if( response == null ){
-			System.out.println("1. Error in response (NAT) "+response.getOptions()+" "+response.getAnswer());
+			System.err.println("1. Error response in NAT( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 			System.exit(0);
 		}
 
@@ -528,7 +526,7 @@ class RangeQuestion extends Question{
 			}
 
 		}else if ( response.getAnswer().equals("--") && !response.getOptions().equals("--")){  
-			System.out.println("2. Error in response (NAT) "+response.getOptions()+" "+response.getAnswer());
+			System.err.println("2. Error response in NAT( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 			System.exit(0);
 		}else if( response.getAnswer().equals("--") ){
 			this.NA++;
@@ -544,18 +542,19 @@ class RangeQuestion extends Question{
 
 		try{
 			double resp =  Double.parseDouble( sanitizeNATResponse( response.getOptions() ) ); 
-			this.AT++;
 
 			if( resp >= this.lower && resp <= this.upper){
 				this.R++;
+				this.AT++;
 				return this.mark;
 			}else{
+				this.AT++;
 				this.W++;
 				return this.negative;                 
 			}
 
 		}catch(Exception e){
-
+			this.AT++;
 			return this.invalidResponse;
 		}	
 	}
@@ -585,8 +584,8 @@ class RangeQuestion extends Question{
 		{
 			response = "";
 		}
-		
-	return response;
+
+		return response;
 	}
 
 	void print(){
@@ -1294,6 +1293,7 @@ class Paper{
 	void print(boolean log){
 
 		ranking();
+
 		print();
 
 		Iterator it = sessionMap.entrySet().iterator();
@@ -1336,24 +1336,27 @@ class Paper{
 			printScoreView();
 			return;
 
-		}else if( Print.detail )
-			header2();
-		else if( Print.actual )
-			header0();
-		else
-			header1();
+		}else if ( ! Print.analysis ){
 
-		for(int i = 0; i < listOfCandidate.size(); i++){
-			Candidate candidate = listOfCandidate.get(i);
-			candidate.print();
+			if( Print.detail )
+				header2();
+			else if( Print.actual )
+				header0();
+			else
+				header1();
+
+			for(int i = 0; i < listOfCandidate.size(); i++){
+				Candidate candidate = listOfCandidate.get(i);
+				candidate.print();
+			}
+
+			if( Print.detail )
+				footer2();
+			else if( Print.actual )
+				footer0();
+			else
+				footer1();
 		}
-
-		if( Print.detail )
-			footer2();
-		else if( Print.actual )
-			footer0();
-		else
-			footer1();
 
 	}
 
@@ -2011,6 +2014,9 @@ public class ResultProcessing{
 
 	void readCandidateAndRawMarkCalulation(String file){
 
+		String line = null;
+		String options = null;
+
 		try{
 			BufferedReader br = new BufferedReader(new FileReader( new File(file) ) );
 
@@ -2022,14 +2028,12 @@ public class ResultProcessing{
 			br.readLine();
 			/* false reading end */
 
-			String line = null;
-
 			while( (line = br.readLine()) != null ){
 
 				if( line.split(",").length <= 2 )
 					continue;
 
-				String options = br.readLine();
+				options = br.readLine();
 
 				//System.out.println("1> "+ line );
 				//System.out.println("2> "+ options );
@@ -2041,7 +2045,6 @@ public class ResultProcessing{
 				String name = rtoken[2].trim();
 
 				String paperCode = rtoken[3].trim().substring(0,2);
-
 
 				Paper paper = paperMap.get( paperCode );
 
@@ -2108,14 +2111,15 @@ public class ResultProcessing{
 				}else{
 					System.out.println("Paper not found! "+line);
 					System.out.println("Paper Code: "+paperCode);
-
-					System.out.println(line);
-					System.out.println(options);
+					System.out.println("Paper options: "+options);
 					System.exit(0);
 				}
 			}
 		}catch(Exception e){
+
 			System.out.println("Problem is reading file :"+file);
+			System.err.println("1> "+ line );
+			System.err.println("2> "+ options );
 			e.printStackTrace();
 		}
 
@@ -2148,6 +2152,7 @@ public class ResultProcessing{
 	void print( boolean log ){
 
 		Iterator it = paperMap.entrySet().iterator();
+
 		if( candidateInfoMap.size() > 0)
 			Print.info = true;
 
@@ -2159,6 +2164,7 @@ public class ResultProcessing{
 	}
 
 	void read(String keyFile, String resFile, String configFile, String applicantFile){
+
 		readConfig( configFile );
 		readKey( keyFile );
 
@@ -2264,9 +2270,7 @@ public class ResultProcessing{
 			}
 
 			ResultProcessing rp = new ResultProcessing();
-
 			rp.read( keyFile, resFile, configFile, applicantFile );
-
 			rp.process();
 			rp.print( log  );
 
