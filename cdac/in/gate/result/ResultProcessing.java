@@ -289,7 +289,7 @@ abstract class Question{
 
 class MultipalChocie extends Question{
 
-	String answer;
+	List<String> answers;
 	static String options = "ABCD";
 
 
@@ -320,16 +320,32 @@ class MultipalChocie extends Question{
 		this.perNA = 0.0d;
 		this.perRAT = 0.0d;
 		this.DL = null;
+		this.answers = new ArrayList<String>();
 
 		if( answer.equalsIgnoreCase("can") ){
 			this.isCancelled = true;
 		}else{
 			this.mark = Double.parseDouble( mark );
-			this.answer = answer.trim();
+			String[] tokens = answer.split(";");
+			if( tokens.length > 1){
+				for(int i = 0; i < tokens.length; i++){
+					this.answers.add ( tokens[i].trim() );
+				}
 
-			if( this.answer.trim().length() > 7 ){
-				System.out.println("Master key has error (MCQ) "+answer);
+			}else{
+				this.answers.add( answer.trim() );
+			}
+
+			if( this.answers.size() == 0 ){
+				System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
 				System.exit(0);
+			}
+
+			for(int i = 0; i < this.answers.size(); i++){
+				if( this.answers.get(i).length() > 1){
+					System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
+					System.exit(0);
+				}
 			}
 
 			if( Config.negative.equals("zero") ){
@@ -388,25 +404,18 @@ class MultipalChocie extends Question{
 				System.err.println("2. Error response in MCQ( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 				System.exit(0);
 
-			}else if( this.answer.length() > 1 ){
+			}else if( this.answers.size() > 0 ){
 
-				String[] answers = this.answer.split(";");
-				for(int i = 0; i < answers.length; i++){
-					if( response.getAnswer().charAt(0) == answers[i].charAt(0) ){
+				for(int i = 0; i < this.answers.size(); i++){
+					if( response.getAnswer().charAt(0) == answers.get(i).charAt(0) ){
 						this.AT++;
 						this.R++;
 						return mark;
 					}	
-				}		
-
+				}
 				this.AT++;
 				this.W++;
 				return negative;
-
-			}else if( response.getAnswer().charAt(0) == this.answer.charAt(0) ){
-				this.AT++;
-				this.R++;
-				return mark;
 			}else{
 				this.AT++;
 				this.W++;
@@ -424,7 +433,7 @@ class MultipalChocie extends Question{
 
 	void print(){
 
-		System.out.print("[MCQ"+Id+", "+answer+", ");
+		System.out.print("[MCQ"+Id+", "+getAnswer()+", ");
 		FP.printD(mark);
 		System.out.print(", ");
 		FP.printD(negative);
@@ -442,7 +451,17 @@ class MultipalChocie extends Question{
 	}
 
 	String getAnswer(){
-		return answer;
+		String tempAns = "";
+		boolean flag = true;
+		for(int i = 0; i < answers.size(); i++){
+			if( flag ){
+				flag = false;
+				tempAns = answers.get(i); 	
+			}else{
+				tempAns += ";"+ answers.get(i); 	
+			}
+		}
+		return tempAns.trim();
 	}
 
 	String type(){
@@ -450,10 +469,37 @@ class MultipalChocie extends Question{
 	}
 }
 
-class RangeQuestion extends Question{
-
+class Rang{
+	
 	private double lower;
 	private double upper;
+
+	Rang(double lower, double upper){
+		this.lower = lower;
+		this.upper = upper;	
+	}
+
+	boolean eval(double value){
+
+		if( value >= lower && value <= upper )
+			return true;
+		else 
+			return false;
+	}
+
+	double getLower(){
+		return lower;	
+	}
+
+	double getUpper(){
+		return upper;
+	}
+
+}
+
+class RangeQuestion extends Question{
+
+	private List<Rang> ranges;
 
 	/** 
 	 * 
@@ -467,7 +513,7 @@ class RangeQuestion extends Question{
 	 *
 	 */
 
-	RangeQuestion( String Id, String section, String answer, String mark){
+	RangeQuestion( String Id, String section, String answers, String mark){
 
 		this.Id = Id;
 		this.section = section;
@@ -482,18 +528,48 @@ class RangeQuestion extends Question{
 		this.perRAT = 0.0d;
 		this.DL = null;
 
-		if( answer.equalsIgnoreCase("can") ){
+		ranges = new ArrayList<Rang>();
+
+		if( answers.equalsIgnoreCase("can") ){
 			this.isCancelled = true;
 		}else{
-			String []token = answer.split(":");
-			if( token.length != 2) {                                          
-				System.out.println("Error in master key creation "+answer);
-				System.exit(0);
-			}
 
-			this.lower = Double.parseDouble( token[0] );
-			this.upper= Double.parseDouble( token[1] );	
+			String []tokens = answers.split(";");
+
+			if( tokens.length > 1){
+
+				for(int i = 0; i < tokens.length; i++){
+
+					String[] token = tokens[i].split(":");
+
+					if( token.length != 2) {                                          
+						System.out.println("Error in master key creation "+answers+" QuestionId :"+Id+" Section: "+section);
+						System.exit(0);
+					}	
+
+					double lower = Double.parseDouble( token[0] );
+					double upper = Double.parseDouble( token[1] );	
+
+					if( upper < lower ){
+						ranges.add( new Rang(upper, lower) );
+					}else{
+						ranges.add( new Rang(lower, upper) );
+					}	
+				}	
+
+			}else{
+				String []token = answers.split(":");
+				if( token.length != 2) {                                          
+					System.out.println("Error in master key creation "+answers+" QuestionId :"+Id+" Section: "+section);
+					System.exit(0);
+				}	
+				double lower = Double.parseDouble( token[0] );
+				double upper = Double.parseDouble( token[1] );	
+				ranges.add( new Rang(lower, upper) );
+			}	
+
 			this.mark = Double.parseDouble( mark );
+
 			this.negative = 0.0d;
 
 			if( Config.unattempted.equals("zero") ){
@@ -543,15 +619,18 @@ class RangeQuestion extends Question{
 		try{
 			double resp =  Double.parseDouble( sanitizeNATResponse( response.getOptions() ) ); 
 
-			if( resp >= this.lower && resp <= this.upper){
-				this.R++;
-				this.AT++;
-				return this.mark;
-			}else{
-				this.AT++;
-				this.W++;
-				return this.negative;                 
+			for(int i = 0; i < ranges.size(); i++){
+
+				if( ranges.get(i).eval( resp ) ){
+					this.R++;
+					this.AT++;
+					return this.mark;
+				}	
 			}
+
+			this.AT++;
+			this.W++;
+			return this.negative;                 
 
 		}catch(Exception e){
 			this.AT++;
@@ -590,7 +669,7 @@ class RangeQuestion extends Question{
 
 	void print(){
 
-		System.out.print("[NAT"+Id+", ("+upper+":"+lower+"), ");
+		System.out.print("[NAT"+Id+", ("+getAnswer()+"), ");
 		FP.printD(mark);
 		System.out.print(", ");
 		FP.printD(negative);
@@ -604,7 +683,17 @@ class RangeQuestion extends Question{
 	}
 
 	String getAnswer(){
-		return lower+":"+upper;
+		String tanswers = "";
+		boolean flag = true;
+		for(int i = 0; i < ranges.size(); i++){
+			if( flag ){
+				tanswers = ranges.get(i).getLower()+":"+ranges.get(i).getUpper();
+				flag = false;
+			}else{
+				tanswers += ";"+ranges.get(i).getLower()+":"+ranges.get(i).getUpper();
+			}	
+		}
+	return tanswers.trim();	
 	}
 
 	String getDL(){
