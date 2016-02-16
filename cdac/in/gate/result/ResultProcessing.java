@@ -270,7 +270,7 @@ abstract class Question{
 	abstract double eval(Response response, Candidate candidate);
 	abstract void printLog( boolean flag );
 	abstract void print();
-	abstract String getAnswer();
+	abstract String getAnswers();
 	abstract String type();
 	abstract String getDL();	
 }
@@ -289,8 +289,9 @@ abstract class Question{
 
 class MultipalChocie extends Question{
 
-	List<String> answers;
-	static String options = "ABCD";
+	private List<String> answers;
+	private static String options = "ABCD";
+	private boolean MTA;
 
 
 	/** 
@@ -321,28 +322,25 @@ class MultipalChocie extends Question{
 		this.perRAT = 0.0d;
 		this.DL = null;
 		this.answers = new ArrayList<String>();
+		this.MTA = false;
 
 		if( answer.equalsIgnoreCase("can") ){
 			this.isCancelled = true;
 		}else{
 			this.mark = Double.parseDouble( mark );
-			String[] tokens = answer.split(";");
-			if( tokens.length > 1){
-				for(int i = 0; i < tokens.length; i++){
-					this.answers.add ( tokens[i].trim() );
+
+			if( answer.equals("MTA") ){
+				this.MTA = true;
+			}else{	
+				String[] tokens = answer.split(";");
+				for(String token: tokens){
+					if( token.trim().length() > 1){
+						System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
+						System.exit(0);
+					}	
+					this.answers.add ( token.trim() );
 				}
-
-			}else{
-				this.answers.add( answer.trim() );
-			}
-
-			if( this.answers.size() == 0 ){
-				System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
-				System.exit(0);
-			}
-
-			for(int i = 0; i < this.answers.size(); i++){
-				if( this.answers.get(i).length() > 1){
+				if( this.answers.size() <= 0 ){
 					System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
 					System.exit(0);
 				}
@@ -396,6 +394,11 @@ class MultipalChocie extends Question{
 					return ( this.mark / Integer.parseInt( Config.cancelled ) );
 				}
 
+			}else if( this.MTA ){
+				this.AT++;
+				this.R++;
+				return mark;
+			
 			}else if( response.getAnswer().equals("--") ){   
 				this.NA++;
 				return unattempted;
@@ -404,18 +407,10 @@ class MultipalChocie extends Question{
 				System.err.println("2. Error response in MCQ( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 				System.exit(0);
 
-			}else if( this.answers.size() > 0 ){
-
-				for(int i = 0; i < this.answers.size(); i++){
-					if( response.getAnswer().charAt(0) == answers.get(i).charAt(0) ){
-						this.AT++;
-						this.R++;
-						return mark;
-					}	
-				}
+			}else if( this.answers.contains( response.getAnswer() ) ){
 				this.AT++;
-				this.W++;
-				return negative;
+				this.R++;
+				return mark;
 			}else{
 				this.AT++;
 				this.W++;
@@ -433,7 +428,7 @@ class MultipalChocie extends Question{
 
 	void print(){
 
-		System.out.print("[MCQ"+Id+", "+getAnswer()+", ");
+		System.out.print("[MCQ"+Id+", "+getAnswers()+", ");
 		FP.printD(mark);
 		System.out.print(", ");
 		FP.printD(negative);
@@ -450,18 +445,21 @@ class MultipalChocie extends Question{
 		return DL;
 	}
 
-	String getAnswer(){
-		String tempAns = "";
+	String getAnswers(){
+		if( this.MTA ){
+			return "MTA";
+		}
+		String tanswer = "";
 		boolean flag = true;
-		for(int i = 0; i < answers.size(); i++){
+		for(String answer: answers){
 			if( flag ){
 				flag = false;
-				tempAns = answers.get(i); 	
+				tanswer = answer; 	
 			}else{
-				tempAns += ";"+ answers.get(i); 	
+				tanswer += ";"+ answer; 	
 			}
 		}
-		return tempAns.trim();
+		return tanswer;
 	}
 
 	String type(){
@@ -499,7 +497,8 @@ class Rang{
 
 class RangeQuestion extends Question{
 
-	private List<Rang> ranges;
+	private List<Rang> answers;
+	private boolean MTA;
 
 	/** 
 	 * 
@@ -513,7 +512,7 @@ class RangeQuestion extends Question{
 	 *
 	 */
 
-	RangeQuestion( String Id, String section, String answers, String mark){
+	RangeQuestion( String Id, String section, String answer, String mark){
 
 		this.Id = Id;
 		this.section = section;
@@ -528,48 +527,37 @@ class RangeQuestion extends Question{
 		this.perRAT = 0.0d;
 		this.DL = null;
 
-		ranges = new ArrayList<Rang>();
+		this.MTA = false;
+		this.answers = new ArrayList<Rang>();
 
-		if( answers.equalsIgnoreCase("can") ){
+		if( answer.equalsIgnoreCase("can") ){
 			this.isCancelled = true;
+		}else if( answer.equals("MTA") ){
+			this.MTA = true;
 		}else{
-
-			String []tokens = answers.split(";");
-
-			if( tokens.length > 1){
-
-				for(int i = 0; i < tokens.length; i++){
-
-					String[] token = tokens[i].split(":");
-
-					if( token.length != 2) {                                          
-						System.out.println("Error in master key creation "+answers+" QuestionId :"+Id+" Section: "+section);
-						System.exit(0);
-					}	
-
-					double lower = Double.parseDouble( token[0] );
-					double upper = Double.parseDouble( token[1] );	
-
-					if( upper < lower ){
-						ranges.add( new Rang(upper, lower) );
-					}else{
-						ranges.add( new Rang(lower, upper) );
-					}	
-				}	
-
-			}else{
-				String []token = answers.split(":");
-				if( token.length != 2) {                                          
-					System.out.println("Error in master key creation "+answers+" QuestionId :"+Id+" Section: "+section);
+			String []tokens = answer.split(";");
+			for(String token: tokens ){
+				String[] tk = token.split(":");
+				if( tk.length != 2) {                                          
+					System.err.println("Error in master key creation "+answer+" QuestionId :"+Id+" Section: "+section);
 					System.exit(0);
 				}	
-				double lower = Double.parseDouble( token[0] );
-				double upper = Double.parseDouble( token[1] );	
-				ranges.add( new Rang(lower, upper) );
+
+				double lower = Double.parseDouble( tk[0].trim() );
+				double upper = Double.parseDouble( tk[1].trim() );	
+				if( lower <= upper ){
+					this.answers.add( new Rang(lower, upper) );
+				}else{
+					this.answers.add( new Rang(upper, lower) );
+				}	
 			}	
 
-			this.mark = Double.parseDouble( mark );
+			if( this.answers.size() <= 0){
+				System.err.println("Error in master key creation "+answer+" QuestionId :"+Id+" Section: "+section);
+				System.exit(0);
+			}
 
+			this.mark = Double.parseDouble( mark );
 			this.negative = 0.0d;
 
 			if( Config.unattempted.equals("zero") ){
@@ -593,7 +581,7 @@ class RangeQuestion extends Question{
 			System.exit(0);
 		}
 
-		if( isCancelled ){
+		if( this.isCancelled ){
 
 			if( Config.cancelled.equals("zero") ){
 				return 0.0d;
@@ -601,6 +589,11 @@ class RangeQuestion extends Question{
 				return ( this.mark / Integer.parseInt( Config.cancelled ) );
 			}
 
+		}else if( this.MTA ){
+			this.R++;
+			this.AT++;
+			return this.mark;
+		
 		}else if ( response.getAnswer().equals("--") && !response.getOptions().equals("--")){  
 			System.err.println("2. Error response in NAT( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 			System.exit(0);
@@ -619,13 +612,12 @@ class RangeQuestion extends Question{
 		try{
 			double resp =  Double.parseDouble( sanitizeNATResponse( response.getOptions() ) ); 
 
-			for(int i = 0; i < ranges.size(); i++){
-
-				if( ranges.get(i).eval( resp ) ){
+			for(Rang rang: this.answers){
+				if( rang.eval( resp ) ){
 					this.R++;
 					this.AT++;
 					return this.mark;
-				}	
+				}
 			}
 
 			this.AT++;
@@ -669,7 +661,7 @@ class RangeQuestion extends Question{
 
 	void print(){
 
-		System.out.print("[NAT"+Id+", ("+getAnswer()+"), ");
+		System.out.print("[NAT"+Id+", ("+this.getAnswers()+"), ");
 		FP.printD(mark);
 		System.out.print(", ");
 		FP.printD(negative);
@@ -682,15 +674,20 @@ class RangeQuestion extends Question{
 		System.out.println("R:"+this.R+" # TY:"+type()+" # NA:"+this.NA+" # W:"+W+" # %R:"+perR+" # %W:"+perW+" # %NA:"+perNA+" # %R/A:"+perRAT+" # DL:"+DL);
 	}
 
-	String getAnswer(){
+	String getAnswers(){
+
+		if( this.MTA ){
+			return "MTA";
+		}	
+
 		String tanswers = "";
 		boolean flag = true;
-		for(int i = 0; i < ranges.size(); i++){
+		for(Rang rang: this.answers){
 			if( flag ){
-				tanswers = ranges.get(i).getLower()+":"+ranges.get(i).getUpper();
+				tanswers = rang.getLower()+":"+rang.getUpper();
 				flag = false;
 			}else{
-				tanswers += ";"+ranges.get(i).getLower()+":"+ranges.get(i).getUpper();
+				tanswers += ";"+rang.getLower()+":"+rang.getUpper();
 			}	
 		}
 	return tanswers.trim();	

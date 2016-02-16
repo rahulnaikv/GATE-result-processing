@@ -65,7 +65,7 @@ class QuestionReport{
 			DecimalFormat formatter = new DecimalFormat("00.00");
 			String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
 			String wronper = formatter.format((float)(( (float) wrong/attempt ) * 100 ));
-			System.out.print(question.Id+", "+attempt+", "+correct+", "+ corrper+"%, "+wrong+", "+wronper+"%, "+question.getAnswer());
+			System.out.print(question.Id+", "+attempt+", "+correct+", "+ corrper+"%, "+wrong+", "+wronper+"%, "+question.getAnswers());
 
 			Iterator it = answersMap.entrySet().iterator();
 			while ( it.hasNext() ) {
@@ -102,7 +102,7 @@ class QuestionReport{
 			String option = null;
 			Integer count = 0 ;
 
-			String answer = String.format("%0$-17s", question.getAnswer() );
+			String answer = String.format("%0$-17s", question.getAnswers() );
 			DecimalFormat formatter = new DecimalFormat("00.00");
 			String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
 			String wronper = formatter.format((float)(( (float) wrong/attempt ) * 100 ));
