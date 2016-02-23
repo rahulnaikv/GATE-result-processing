@@ -549,6 +549,7 @@ class RangeQuestion extends Question{
 										this.answers.add( new Rang(lower, upper) );
 								}else{
 										this.answers.add( new Rang(upper, lower) );
+										System.err.println("Error in Key: "+Id+" Lower: "+lower+" Upper: "+upper);
 								}	
 						}	
 
@@ -1406,7 +1407,7 @@ class Paper{
 
 						 */
 
-						System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_1_sec_name,opt_2_sec, opt_2_sec_name, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff");
+						System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_1_sec_name,opt_2_sec, opt_2_sec_name, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
 						printResultView();
 						return;
 
@@ -1417,8 +1418,10 @@ class Paper{
 						   In header paper-name, opt-1-Sec-name, and opt-2-sec-name is added 
 
 						 */
+						System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff");
 
-						System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared,RawMarks,NorMarks,GATEScore,AIR, category, PwD,Scribe,Nationality,Gender,dob (dd/mm/yy),Qualifying Degree, Qualifing-Discipline, Qualifing-Year,Phone,State(Permanent Address),Name of the Parent, Email,address_line_1,address_line_2,address_line_3,City,State,PIN,DigitalFingerPrint,PhotoPath,SignaturePath,Gen-cutoff,OBC-cutoff,SCSTPwD_Cutoff");
+						//System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared,RawMarks,NorMarks,GATEScore,AIR, category, PwD,Scribe,Nationality,Gender,dob (dd/mm/yy),Qualifying Degree, Qualifing-Discipline, Qualifing-Year,Phone,State(Permanent Address),Name of the Parent, Email,address_line_1,address_line_2,address_line_3,City,State,PIN,DigitalFingerPrint,PhotoPath,SignaturePath,Gen-cutoff,OBC-cutoff,SCSTPwD_Cutoff");
+
 						printScoreView();
 						return;
 
@@ -1566,7 +1569,7 @@ class Paper{
 						}
 						double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 
-						System.out.println( rMark+", "+NRMark+","+c.rank+","+c.GATEScore+","+c.isQualified+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
+						System.out.println( rMark+", "+NRMark+","+c.rank+","+c.GATEScore+","+c.isQualified+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff+", "+c.info.gender);
 				}
 
 		}
@@ -1590,28 +1593,38 @@ class Paper{
 						if( !multiSession )
 								NRMark = "Not Applicable";
 
-						System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2016 ,"+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim())+", ");
+						System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2016, "+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim()));
 
 						if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") ) ){
 
 								Iterator<String> itr = c.sections.iterator();
+								int count = 0;
 
 								while( itr.hasNext() ){
-										String section = itr.next();
-										System.out.print(section+", "+CodeMapping.sectionCodeMap.get( section.trim() )+", ");
+										String section = itr.next().trim();
+										if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) )
+											continue;
+								
+										count++;
+										System.out.print(", "+section+", "+CodeMapping.sectionCodeMap.get( section ));
 								}
-								if( c.sections.size() == 1 ) {
-										System.out.print(" , , ");
+
+								if ( count == 0){
+										System.out.print(", , , , ");
+								}
+
+								if( count == 1 ) {
+										System.out.print(", , ");
 								}
 
 						}
 						else{
-								System.out.print(" , , , , ");
+								System.out.print(", , , , ");
 						}
 
 						double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 
-						System.out.println(c.info.name+","+listOfCandidate.size()+","+rMark+","+NRMark+","+c.GATEScore+","+c.rank+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.info.scribe+","+c.digitalFP+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
+						System.out.println(", "+c.info.name+","+listOfCandidate.size()+","+rMark+","+NRMark+","+c.GATEScore+","+c.rank+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.info.scribe+","+c.digitalFP+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
 
 				}
 
@@ -2148,7 +2161,8 @@ public class ResultProcessing{
 												CandidateInfo ci = candidateInfoMap.get( rollNumber );
 
 												if( ci != null ){
-														candidate.info = ci;
+													candidate.info = ci;
+															
 												}
 
 												for(int i = 0, r = 5; i < session.listOfQuestions.size(); i++, r++){
