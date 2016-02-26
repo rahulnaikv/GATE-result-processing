@@ -1407,7 +1407,7 @@ class Paper{
 
 						 */
 
-						System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_1_sec_name,opt_2_sec, opt_2_sec_name, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
+						System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_2_sec, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
 						printResultView();
 						return;
 
@@ -1551,25 +1551,29 @@ class Paper{
 
 						if( !multiSession )
 								NRMark = "Not Applicable";
-						System.out.print(c.rollNumber+","+c.info.applicationId+","+c.info.name+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.paperCode+","+CodeMapping.paperCodeMap.get( c.paperCode.trim() )+",");
+						System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.info.name+", "+CodeMapping.categoryMap.get(c.info.category)+", "+c.info.isPd+", "+c.paperCode+", "+CodeMapping.paperCodeMap.get( c.paperCode.trim() ));
 
 						if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") )  ){
 
 								Iterator<String> itr = c.sections.iterator();
+								int count = 0;
 
 								while( itr.hasNext() ){
 										String section = itr.next();
-										System.out.print(section+","+CodeMapping.sectionCodeMap.get( section.trim() )+", ");
+										if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) || "GG-C".equals(section) )
+											continue;
+										System.out.print(", "+section.substring(section.indexOf("-") + 1));	
+										count++;
 								}	
-								if( c.sections.size() == 1)	
-										System.out.print(" , , ");
+								if( count == 1)	
+										System.out.print(", ");
 						}
 						else{
-								System.out.print(" , , , , ");
+								System.out.print(",  , ");
 						}
 						double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 
-						System.out.println( rMark+", "+NRMark+","+c.rank+","+c.GATEScore+","+c.isQualified+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff+", "+c.info.gender);
+						System.out.println(", "+rMark+", "+NRMark+", "+c.rank+", "+c.GATEScore+", "+c.isQualified+", "+genCutOff+", "+obcCutOff+", "+sTsCPwDCutOff+", "+c.info.gender);
 				}
 
 		}
@@ -1602,7 +1606,7 @@ class Paper{
 
 								while( itr.hasNext() ){
 										String section = itr.next().trim();
-										if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) )
+										if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) || "GG-C".equals(section) )
 											continue;
 								
 										count++;
