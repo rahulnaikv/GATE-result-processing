@@ -1303,14 +1303,26 @@ class Paper{
 						while( it.hasNext() ){
 								Map.Entry pairs = (Map.Entry)it.next();
 								Session sn = (Session) pairs.getValue();
+
 								for(int i = 0; i < sn.listOfCandidate.size(); i++){
 										Candidate candidate = sn.listOfCandidate.get(i);
+									
+										/*  for Testing */
+										/*	
+										if( "CS16S63005175".equals( candidate.rollNumber) ){
+											System.out.println("("+SQ+" + ( "+ST +" - "+SQ+" ) * ( ( "+candidate.normalisedMark+" - "+mQ+" ) / ( "+mTBar +" - "+mQ +" ) ) ) ");
+											System.out.println( ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - mQ ) / ( mTBar - mQ  ) ) ) );
+											System.exit(0);
+										}
+										*/
+
 										candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - mQ ) / ( mTBar - mQ  ) ) );
 										candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
 										if( candidate.GATEScore > 1000 )
 										{
 												candidate.GATEScore = 1000;
 										}
+
 								}
 						}
 				}
@@ -1726,13 +1738,14 @@ class Paper{
 				}
 
 				double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
-				String NRMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualNormalisedMark ) ) + "";
+				String NRMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualNormalisedMark ) )+"";
 				if( !multiSession )
-					NRMark = " ";
+					NRMark = "0.0";
 
 				System.out.print(c.rollNumber+","+c.info.applicationId+","+rMark+","+NRMark+","+c.rank+","+c.GATEScore+","+c.isQualified+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff+",");
 
 				String sections = "";
+
 				if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") ) ){
 
 					Iterator<String> itr = c.sections.iterator();
@@ -1743,15 +1756,18 @@ class Paper{
 							if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) || "GG-C".equals(section) )
 								continue;
 							count++;
-							sections += section.substring( section.indexOf("-")+1)+" "; 
+							if( "GP-1".equals(section ) )	
+								sections += "2 "; 
+							else
+								sections += section.substring( section.indexOf("-")+1)+" "; 
 					}
-					sections = sections.trim().replaceAll(" ", ",");
+					sections = sections.trim().replaceAll(" ", ":");
 				}
 
 				if( sections.trim().length() > 0){
-					System.out.println("'"+sections+"'");
+					System.out.println(sections);
 				}else{
-					System.out.println(" ");
+					System.out.println("");
 				}
 			}
 		}
