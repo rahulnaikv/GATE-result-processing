@@ -441,8 +441,11 @@ class MultipalChocie extends Question{
 		System.out.print("]");
 	}
 
+	void printLogHeader(boolean flag){
+		System.out.println("Q.No, Section, Q-type, Attempt, Right, Wrong, No-attempt, %Right, %Wrong, %No-attempt, %Right/Attempt, Dificulty-Level");
+	}
 	void printLog(boolean flag){
-		System.out.println("R:"+this.R+"# TY:"+type()+" # NA:"+this.NA+" # W:"+W+" # %R:"+perR+" # %W:"+perW+" # %NA:"+perNA+" # %R/A:"+perRAT+" # DL:"+DL);
+		System.out.println(this.Id+", "+this.section+", "+this.type()+", "+this.AT+", "+this.R+", "+this.W+", "+this.NA+", "+perR+", "+perW+", "+perNA+", "+perRAT+", "+DL);
 	}
 
 	String getDL(){
@@ -671,7 +674,7 @@ class RangeQuestion extends Question{
 	}
 
 	void printLog(boolean flag){
-		System.out.println("R:"+this.R+" # TY:"+type()+" # NA:"+this.NA+" # W:"+W+" # %R:"+perR+" # %W:"+perW+" # %NA:"+perNA+" # %R/A:"+perRAT+" # DL:"+DL);
+		System.out.println(this.Id+", "+this.section+", "+this.type()+", "+this.AT+", "+this.R+", "+this.W+", "+this.NA+", "+perR+", "+perW+", "+perNA+", "+perRAT+", "+DL);
 	}
 
 	String getAnswers(){
@@ -808,6 +811,7 @@ class Session{
 
 	void printLog(){
 
+		System.out.println("Q.No, Section, Q-type, Attempt, Right, Wrong, No-attempt, %Right, %Wrong, %No-attempt, %Right/Attempt, Dificulty-Level");
 		for(int i = 0;  i < this.listOfQuestions.size(); i++){
 			Question question = this.listOfQuestions.get(i);
 			question.perR =  Double.parseDouble( new DecimalFormat("#0.0#").format( (double) (100 / (double) this.listOfCandidate.size() ) * (double) question.R ) );
@@ -831,7 +835,7 @@ class Session{
 				question.DL = "DL5";
 				DL5++;
 			}
-			System.out.print("Qn:"+(i+1)+" # ");
+			//System.out.print("Qn:"+(i+1)+" # ");
 			if( i == this.listOfQuestions.size() -1)
 				question.printLog( false );
 			else
@@ -1494,7 +1498,9 @@ class Paper{
 			System.out.format("|              Log Print                 |%n");
 			System.out.format("|________________________________________|%n");
 		}
+
 		while( it.hasNext() ){
+
 			Map.Entry pairs = (Map.Entry)it.next();
 			Session session = (Session) pairs.getValue();
 			session.print();
@@ -1503,35 +1509,38 @@ class Paper{
 			}
 		}
 
-		if( Print.resultView ){
+		if( !log ){ 
 
-			System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_2_sec, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
-			printResultView();
-			return;
+			if( Print.resultView ){
 
-		}else if( Print.scoreView ){
-			System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff");
-			printScoreView();
-			return;
+				System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_2_sec, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
+				printResultView();
+				return;
 
-		}else if ( ! Print.analysis ){
-			if( Print.detail )
-				header2();
-			else if( Print.actual )
-				header0();
-			else
-				header1();
-			for(int i = 0; i < listOfCandidate.size(); i++){
-				Candidate candidate = listOfCandidate.get(i);
-				candidate.print();
+			}else if( Print.scoreView ){
+				System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff");
+				printScoreView();
+				return;
+
+			}else if ( ! Print.analysis ){
+				if( Print.detail )
+					header2();
+				else if( Print.actual )
+					header0();
+				else
+					header1();
+				for(int i = 0; i < listOfCandidate.size(); i++){
+					Candidate candidate = listOfCandidate.get(i);
+					candidate.print();
+				}
+
+				if( Print.detail )
+					footer2();
+				else if( Print.actual )
+					footer0();
+				else
+					footer1();
 			}
-
-			if( Print.detail )
-				footer2();
-			else if( Print.actual )
-				footer0();
-			else
-				footer1();
 		}
 	}
 
