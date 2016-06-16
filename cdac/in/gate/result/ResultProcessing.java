@@ -883,6 +883,10 @@ class Paper{
 	double obcCutOff;
 	double sTsCPwDCutOff;
 
+	int genCutOffGate;
+	int obcCutOffGate;
+	int sTsCPwDCutOffGate;
+
 	int maxOf10OR01per;
 	int zeroPointOnePercent;
 	boolean multiSession;
@@ -1368,6 +1372,11 @@ class Paper{
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
 
+
+		this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+		this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+		this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
+
 		maxNorMarks = StdStats.max( marks );
 
 		/*
@@ -1407,9 +1416,12 @@ class Paper{
 		df.setRoundingMode( RoundingMode.DOWN );
 
 		genCutOff = Double.parseDouble( df.format( mQ ) );
-		//XXX: Calculating obcCutOff and sTsCPwDCutOff on genCutOff instead of mQ
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
+
+		genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+		obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+		sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
 
 		if( sessionMap.size() > 1)
 			multiSession = true;
@@ -1564,6 +1576,9 @@ class Paper{
 		System.out.format("| CutOff(GEN)            | %-13.2f |%n", genCutOff );
 		System.out.format("| CutOff(OBC)            | %-13.2f |%n", obcCutOff );
 		System.out.format("| CutOff(ST/SC/PwD)      | %-13.2f |%n", sTsCPwDCutOff );
+		System.out.format("| CutOff(GEN) GATEScore  | %-13d   |%n", genCutOffGate );
+		System.out.format("| CutOff(OBC) GATEScore  | %-13d   |%n", obcCutOffGate );
+		System.out.format("| CutOff(ST/SC/PwD) GATE | %-13d   |%n", sTsCPwDCutOffGate );
 		System.out.format("|________________________|_______________|%n");
 		System.out.format("| Exclusive GEN          | %-13d |%n", QGenX );
 		System.out.format("| OBC with GEN cutoff    | %-13d |%n", QObcG);
