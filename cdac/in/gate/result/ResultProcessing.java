@@ -545,7 +545,7 @@ class RangeQuestion extends Question{
 		}else{
 			String []tokens = answer.split(";");
 			for(String token: tokens ){
-				String[] tk = token.split(":");
+				String[] tk = token.split("to");
 				if( tk.length != 2) {                                          
 					System.err.println("Error in master key creation "+answer+" QuestionId :"+Id+" Section: "+section);
 					System.exit(0);
@@ -2309,7 +2309,7 @@ public class ResultProcessing{
 				String rollNumber = rtoken[1].trim();
 				String name = rtoken[2].trim();
 
-				String paperCode = rtoken[3].trim().substring(0,2);
+				String paperCode = rollNumber.substring(0,2);
 
 				Paper paper = paperMap.get( paperCode );
 
@@ -2331,7 +2331,7 @@ public class ResultProcessing{
 
 						}
 
-						for(int i = 0, r = 5; i < session.listOfQuestions.size(); i++, r++){
+						for(int i = 0, r = 12; i < session.listOfQuestions.size(); i++, r++){
 
 							Response response = new Response( rtoken[r], otoken[r] );
 							Question question = session.listOfQuestions.get(i);
