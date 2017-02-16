@@ -1034,6 +1034,35 @@ class Paper{
 
 	}
 
+	void rankingMCQNAT(){
+
+		double oldMarks = 99999.0d;  
+		Collections.sort( listOfCandidate, new MCQMarksComp() );
+		for(int i = 0, count = 1, rank = 1; i < listOfCandidate.size(); i++, count++){
+
+			Candidate candidate = listOfCandidate.get(i);
+			double marks = candidate.getMCQMarks();
+			if( oldMarks > marks)   
+				rank = count;
+			oldMarks = marks;
+			candidate.MCQRank = rank;
+		}
+
+		oldMarks = 99999.0d;  
+		Collections.sort( listOfCandidate, new NATMarksComp() );
+		for(int i = 0, count = 1, rank = 1; i < listOfCandidate.size(); i++, count++){
+			Candidate candidate = listOfCandidate.get(i);
+			double marks = candidate.getNATMarks();
+			if( oldMarks > marks)   
+				rank = count;
+			oldMarks = marks;
+			candidate.NATRank = rank;
+		}	
+
+		ranking();
+
+	}
+
 	void ranking(){
 
 		Collections.sort( listOfCandidate, new RawMarksComp() );
@@ -1494,6 +1523,13 @@ class Paper{
 
 	void print(boolean log){
 
+
+		if( ResultProcessing.mcqnat){
+			rankingMCQNAT( );
+			rankView();
+			return;	
+		}
+
 		ranking();
 
 		if( ResultProcessing.tableResultView ){
@@ -1749,6 +1785,31 @@ class Paper{
 
 	}
 
+	void rankView(){
+		System.out.println("RegistrationId, ApplicationId, NormalizedMarks, GATE-Score, AIR, RawMarks, MCQ-Rank, MCQ-Mraks, NAT-Rank, NAT-Marks, IsQualified, GenCutoff, OBCCutoff, SC/ST/PD CuttOff");
+		for(int i = 0; i < listOfCandidate.size(); i++){
+
+			Candidate c = listOfCandidate.get(i);
+
+			if( c.info == null ){
+				System.out.println("Candidate information is msssing");
+				return;
+			}
+
+			double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
+			double mcqMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.MCQMark ) );
+			double natMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.NATMark ) );
+
+			String NRMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualNormalisedMark ) )+"";
+			if( !multiSession )
+			     NRMark = "0.0";
+
+			System.out.println(c.rollNumber+","+c.info.applicationId+","+NRMark+","+c.GATEScore+","+c.rank+","+rMark+","+c.MCQRank+","+mcqMark+","+c.NATRank+","+natMark+","+c.isQualified+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
+		}
+
+
+	}	
+
 	void resultTableView(){
 
 		System.out.println("RegistrationId, ApplicationId, RawMarks, NormalizedMarks, AIR, Score, IsQualified, GenCutoff, OBCCutoff, SC/ST/PD CuttOff, Optional Sections");
@@ -1777,7 +1838,7 @@ class Paper{
 
 				while( itr.hasNext() ){
 					String section = itr.next().trim();
-					if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) || "GG-C".equals(section) )
+					if( "GA".equals(section) || "XE-A".equals(section)|| "XL-H".equals(section)|| "GG-C".equals(section))
 						continue;
 					count++;
 					if( "GP-1".equals(section ) )	
@@ -1851,8 +1912,12 @@ class Candidate {
 	CandidateInfo info;
 
 	int rank;	
+	int MCQRank;
+	int NATRank;
 	double actualMark;	
 	double rawMark;
+	double MCQMark;
+	double NATMark;
 	double normalisedMark;
 	double actualNormalisedMark;
 	int GATEScore;
@@ -1874,11 +1939,15 @@ class Candidate {
 		this.paperCode = paperCode;
 
 		this.rawMark = 0.0d;
+		this.MCQMark = 0.0d;
+		this.NATMark = 0.0d;
 		this.actualMark = 0.0d;
 		this.actualGATEScore =  0.0d;
 		this.GATEScore =  0;
 		this.normalisedMark = 0.0d;
 		this.rank = -1;
+		this.MCQRank = -1;
+		this.NATRank = -1;
 
 		this.digitalFP = null;
 		this.qrCode = null;
@@ -1887,6 +1956,14 @@ class Candidate {
 		responses = new ArrayList<Response>();
 		sections = new TreeSet<String>();
 		sectionWiseMarks = new TreeMap<String, Double>();
+	}
+
+	double getMCQMarks(){
+		return this.MCQMark;
+	}
+
+	double getNATMarks(){
+		return this.NATMark;
 	}
 
 	double getRawMarks(){
@@ -1903,6 +1980,7 @@ class Candidate {
 
 	void calculateRawMarks(){
 
+		/*
 		if(this.paperCode.equals("GG") ){	
 
 			this.sections = new TreeSet<String>();
@@ -1946,10 +2024,17 @@ class Candidate {
 				this.rawMark += sectionWiseMarks.get( section );	
 			} 	
 		}
+		*/
+		this.rawMark = 0.0d;
+		Set<String> sections = sectionWiseMarks.keySet();
+		for(String section: sections){
+		    this.rawMark += sectionWiseMarks.get( section );	
+		} 	
 	}
 
 
 	void printTop(){
+
 		System.out.println("|    |               |       |                                                                                                                                                                                                              |");
 		System.out.format("|%3d | %-11s | %-2.2f |", rank, rollNumber, rawMark, actualMark);
 		String output = "";
@@ -2088,15 +2173,50 @@ class Candidate {
 				}	
 				}
 				System.out.format("%-9s |%n",section);
-				*/
+			*/
 			System.out.format("%42s |%n",sectionString);
 		}
 	}
 
 	void printInfo(){
+
 		String output =  rank+", "+rollNumber+" ,"+sessionId+", "+rawMark+", "+actualMark+", "+normalisedMark+", "+GATEScore+", "+actualGATEScore+", "+CodeMapping.categoryMap.get(info.category)+", "+info.isPd+", "+isQualified;
 		output += ", "+info.print()+", "+qrCode+", "+digitalFP;
 		System.out.println( output.trim() );
+	}
+}
+
+class MCQMarksComp implements Comparator<Candidate>{
+	@Override
+	public int compare(Candidate candidate1, Candidate candidate2) {
+		if( candidate1.getMCQMarks() < candidate2.getMCQMarks() )
+			return 1;
+		if( candidate1.getMCQMarks() > candidate2.getMCQMarks() )
+			return -1;
+
+		long d1 = Double.doubleToLongBits(candidate1.getMCQMarks());
+		long d2 = Double.doubleToLongBits(candidate2.getMCQMarks());
+
+		return (d1 == d2 ?  0 : // Values are equal
+				(d1 < d2 ? -1 : // (-0.0, 0.0) or (!NaN, NaN)
+				 1));                          // (0.0, -0.0) or (NaN, !NaN)
+	}
+}
+
+class NATMarksComp implements Comparator<Candidate>{
+	@Override
+	public int compare(Candidate candidate1, Candidate candidate2) {
+		if( candidate1.getNATMarks() < candidate2.getNATMarks() )
+			return 1;
+		if( candidate1.getNATMarks() > candidate2.getNATMarks() )
+			return -1;
+
+		long d1 = Double.doubleToLongBits(candidate1.getNATMarks());
+		long d2 = Double.doubleToLongBits(candidate2.getNATMarks());
+
+		return (d1 == d2 ?  0 : // Values are equal
+				(d1 < d2 ? -1 : // (-0.0, 0.0) or (!NaN, NaN)
+				 1));                          // (0.0, -0.0) or (NaN, !NaN)
 	}
 }
 
@@ -2159,6 +2279,7 @@ public class ResultProcessing{
 	Map<String, CandidateInfo> candidateInfoMap;
 	static boolean analysisView = false;
 	static boolean tableResultView = false;
+	static boolean mcqnat = false;
 
 	ResultProcessing(){
 		paperMap = new HashMap<String, Paper>();
@@ -2352,12 +2473,21 @@ public class ResultProcessing{
 							}
 
 							candidate.rawMark += mark;
+
+							if( question.type().equals("MCQ") ){
+								candidate.MCQMark += mark;
+							}else if( question.type().equals("NAT") ){
+								candidate.NATMark += mark;
+							}	
+
 						}
 
 						candidate.calculateRawMarks();
 
 						candidate.actualMark = candidate.rawMark;
-						candidate.rawMark = Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.rawMark ));
+						candidate.rawMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.rawMark ));
+  						candidate.MCQMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.MCQMark )); 
+						candidate.NATMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.NATMark )); 
 
 						if( candidate.rawMark <= 0.0d)
 							candidate.rawMark = 0.0d;
@@ -2596,7 +2726,9 @@ public class ResultProcessing{
 					tableResultView = true;
 				}else if ( args[i].equals("-sa")  ){
 					sectionAnalysis = true;
-				}
+				}else if( args[i].equals("-qnt") ){
+					mcqnat = true;
+				}			
 
 				i++;
 			}
@@ -2614,6 +2746,7 @@ public class ResultProcessing{
 				System.out.println("-av Question Analysis View");
 				System.out.println("-rt Result Table View");
 				System.out.println("-sa Section Analysis View");
+				System.out.println("-qnt MCQ/NAT based ranking view");
 				System.out.println("[optional attribute ] ");
 				System.exit(0);
 			}

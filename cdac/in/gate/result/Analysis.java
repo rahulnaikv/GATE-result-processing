@@ -109,6 +109,7 @@ class QuestionReport{
 
 			System.out.format(" ___________________________________\n");
 			System.out.format("| Question No   | %-4s              |\n", question.Id );
+			System.out.format("| Qn  section   | %-4s              |\n", question.section );
 			System.out.format("| Total Attempt | %-4d              |\n", attempt );
 			System.out.printf("| Correct       | %-4d(%s%%)      |\n",correct, corrper );
 			System.out.printf("| Wrong         | %-4d(%s%%)      |\n",wrong, wronper );
