@@ -120,19 +120,24 @@ class CodeMapping{
 
 		sectionCodeMap.put("GG-1", "Geology");
 		sectionCodeMap.put("GP-1", "Geophysics");
+
 		sectionCodeMap.put("XE-A", "Engineering Mathematics (Compulsory)");
-		sectionCodeMap.put("XL-H", "Chemistry (Compulsory)");
+
 		sectionCodeMap.put("XE-B", "Fluid Mechanics");
-		sectionCodeMap.put("XL-I", "Biochemistry");
 		sectionCodeMap.put("XE-C", "Materials Science");
-		sectionCodeMap.put("XL-J", "Botany");
 		sectionCodeMap.put("XE-D", "Solid Mechanics");
-		sectionCodeMap.put("XL-K", "Microbiology");
 		sectionCodeMap.put("XE-E", "Thermodynamics");
-		sectionCodeMap.put("XL-L", "Zoology");
 		sectionCodeMap.put("XE-F", "Polymer Science and Engineering");
-		sectionCodeMap.put("XL-M", "Food Technology");
 		sectionCodeMap.put("XE-G", "Food Technology");
+		sectionCodeMap.put("XE-H", "Atmospheric and Oceanic Science");
+
+
+		sectionCodeMap.put("XL-P", "Chemistry (Compulsory)");
+		sectionCodeMap.put("XL-Q", "Biochemistry");
+		sectionCodeMap.put("XL-R", "Botany");
+		sectionCodeMap.put("XL-S", "Microbiology");
+		sectionCodeMap.put("XL-T", "Zoology");
+		sectionCodeMap.put("XL-U", "Food Technology");
 
 		/* Category Mapping */
 
@@ -183,7 +188,7 @@ class DigitalSignature{
 
 	public static String getDigitalSignature(String message){
 
-		String salt = "2016gAtE";
+		String salt = "2017gAtE";
 		message = message+""+salt;
 		md.reset();
 		md.update( message.getBytes() );
@@ -480,8 +485,10 @@ class Rang{
 	private double upper;
 
 	Rang(double lower, double upper){
+
 		this.lower = lower - (double) Math.pow(10, -6);
 		this.upper = upper + (double) Math.pow(10, -6);	
+
 	}
 
 	boolean eval(double value){
@@ -505,7 +512,6 @@ class Rang{
 class RangeQuestion extends Question{
 
 	private List<Rang> answers;
-	//private boolean MTA;
 
 	/** 
 	 * 
@@ -1707,9 +1713,11 @@ class Paper{
 			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") )  ){
 				Iterator<String> itr = c.sections.iterator();
 				int count = 0;
+
 				while( itr.hasNext() ){
+
 					String section = itr.next();
-					if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) || "GG-C".equals(section) )
+					if( "GA".equals(section) || "XE-A".equals(section) || "XL-P".equals(section) || "GG-C".equals(section) )
 						continue;
 					System.out.print(", "+section.substring(section.indexOf("-") + 1));	
 					count++;
@@ -1748,7 +1756,7 @@ class Paper{
 			if( !multiSession )
 				NRMark = "Not Applicable";
 
-			System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2016, "+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim()));
+			System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2017, "+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim()));
 
 			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") ) ){
 
@@ -1756,8 +1764,10 @@ class Paper{
 				int count = 0;
 
 				while( itr.hasNext() ){
+
 					String section = itr.next().trim();
-					if( "GA".equals(section) || "XE-A".equals(section) || "XL-H".equals(section) || "GG-C".equals(section) )
+
+					if("GA".equals(section) || "XE-A".equals(section) || "XL-P".equals(section)|| "GG-C".equals(section) )
 						continue;
 
 					count++;
@@ -1838,7 +1848,7 @@ class Paper{
 
 				while( itr.hasNext() ){
 					String section = itr.next().trim();
-					if( "GA".equals(section) || "XE-A".equals(section)|| "XL-H".equals(section)|| "GG-C".equals(section))
+					if( "GA".equals(section) || "XE-A".equals(section)|| "XL-P".equals(section)|| "GG-C".equals(section))
 						continue;
 					count++;
 					if( "GP-1".equals(section ) )	
