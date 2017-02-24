@@ -788,7 +788,7 @@ class Session{
 		   System.err.println((i+1)+":"+ marks[i] );
 		   }
 		   System.err.println("-------------------------------------");
-		   */			
+		  */			
 
 		this.stdDev = StdStats.stddev( marks );
 		this.mTBar = StdStats.mean( marks, 0, zeroPointOnePercent - 1 );
@@ -1310,7 +1310,8 @@ class Paper{
 					/*
 					   CHANGED 14032014
 					   Actual marks is used for calculating candidate Normalised marks.
-					   */
+
+					 */
 
 					candidate.normalisedMark = ( (mTgBar - mQg) / (sn.mTBar - sn.mQ ) ) * ( actualMark - sn.mQ ) + mQg;
 					//System.out.println(" (  ("+mTgBar+" - "+mQg+") / ( "+sn.mTBar +" - "+ sn.mQ +" ) ) * ( "+ actualMark+" - "+sn.mQ+" ) +"+ mQg +" = "+candidate.normalisedMark);
@@ -1331,8 +1332,22 @@ class Paper{
 					else
 						listOfNormalisedMarks.add( 0.0d );
 				}else{
-					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - mQ ) / ( mTBar - mQ  ) ) );
+
+					/*
+						Changed on 2017/02/23
+						mQ round off 
+						GATECutOff Double.parseDouble( df.format( mQ ) )
+						candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - mQ ) / ( mTBar - mQ  ) ) );
+
+					*/
+		
+					DecimalFormat df = new DecimalFormat("#0.0");
+					double _mQ = Double.parseDouble( df.format( mQ ) );
+
+					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - _mQ ) / ( mTBar - _mQ  ) ) );
+	
 					candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
+
 					if( candidate.GATEScore > 1000 ){
 						candidate.GATEScore = 1000;
 					}
@@ -1350,17 +1365,21 @@ class Paper{
 				for(int i = 0; i < sn.listOfCandidate.size(); i++){
 					Candidate candidate = sn.listOfCandidate.get(i);
 
-					/*  for Testing */
-					/*	
-						if( "CS16S63005175".equals( candidate.rollNumber) ){
-						System.out.println("("+SQ+" + ( "+ST +" - "+SQ+" ) * ( ( "+candidate.normalisedMark+" - "+mQ+" ) / ( "+mTBar +" - "+mQ +" ) ) ) ");
-						System.out.println( ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - mQ ) / ( mTBar - mQ  ) ) ) );
-						System.exit(0);
-						}
-						*/
+					/*
+						Changed on 2017/02/23
+						mQ round off 
+						GATECutOff Double.parseDouble( df.format( mQ ) )
+						candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - mQ ) / ( mTBar - mQ  ) ) );
 
-					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - mQ ) / ( mTBar - mQ  ) ) );
+					*/
+					
+					DecimalFormat df = new DecimalFormat("#0.0");
+					double _mQ = Double.parseDouble( df.format( mQ ) );
+
+					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - _mQ ) / ( mTBar - _mQ  ) ) );
+
 					candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
+
 					if( candidate.GATEScore > 1000 )
 					{
 						candidate.GATEScore = 1000;
@@ -1408,16 +1427,30 @@ class Paper{
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
 
 
-		this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-		this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-		this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
+		/*
+			CHANGED 20160223
+
+			this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+			this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+			this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
+		*/
+
+		double _mQ= Double.parseDouble( df.format( mQ ) );
+
+		this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
+		this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
+		this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - _mQ ) / ( mTBar - _mQ  ) ) ) );
+
+		System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
+
+
 
 		maxNorMarks = StdStats.max( marks );
 
 		/*
 		   CHANGED 14032014
 		   listOfActualNormalisedMarks is used for calculating 'minNorMarks' here			
-		   */
+		*/
 
 		double []amarks = StdStats.toArray( this.listOfActualNormalisedMarks );
 		minNorMarks = StdStats.min( amarks );
@@ -1454,14 +1487,28 @@ class Paper{
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
 
-		genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-		obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-		sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
+		/*
+			CHANGED on 20160223
+
+			genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+			obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
+			sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
+
+		*/
+
+		double _mQ= Double.parseDouble( df.format( mQ ) );
+
+		genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
+		obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
+		sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - _mQ ) / ( mTBar - _mQ  ) ) ) );
+
+		System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
 
 		if( sessionMap.size() > 1)
 			multiSession = true;
 
 		Iterator it = sessionMap.entrySet().iterator();
+
 		while( it.hasNext() ){
 			Map.Entry pairs = (Map.Entry)it.next();
 			Session session = (Session) pairs.getValue();
@@ -1572,7 +1619,7 @@ class Paper{
 				return;
 
 			}else if( Print.scoreView ){
-				System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff");
+				System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff, Gen-GATEScoreCuttoff, OBC-GATEScoreCuttoff, SCSTPwD-GATEScoreCuttoff");
 				printScoreView();
 				return;
 
@@ -1789,14 +1836,15 @@ class Paper{
 
 			double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 
-			System.out.println(", "+c.info.name+","+listOfCandidate.size()+","+rMark+","+NRMark+","+c.GATEScore+","+c.rank+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.info.scribe+","+c.digitalFP+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
+			System.out.println(", "+c.info.name+","+listOfCandidate.size()+","+rMark+","+NRMark+","+c.GATEScore+","+c.rank+","+CodeMapping.categoryMap.get(c.info.category)+","+c.info.isPd+","+c.info.scribe+","+c.digitalFP+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff+","+genCutOffGate+","+obcCutOffGate+","+sTsCPwDCutOffGate);
 
 		}
 
 	}
 
 	void rankView(){
-		System.out.println("RegistrationId, ApplicationId, NormalizedMarks, GATE-Score, AIR, RawMarks, MCQ-Rank, MCQ-Mraks, NAT-Rank, NAT-Marks, IsQualified, GenCutoff, OBCCutoff, SC/ST/PD CuttOff");
+
+		System.out.println("RegistrationId, NormalizedMarks, GATE-Score, AIR, RawMarks, MCQ-Rank, MCQ-Mraks, NAT-Rank, NAT-Marks, MCQ-Positive, MCQ-Negative, MCQ Correct-Count, MCQ Negative-Count");
 		for(int i = 0; i < listOfCandidate.size(); i++){
 
 			Candidate c = listOfCandidate.get(i);
@@ -1809,12 +1857,14 @@ class Paper{
 			double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 			double mcqMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.MCQMark ) );
 			double natMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.NATMark ) );
+			double MCQP = Double.parseDouble( new DecimalFormat("#0.0#").format( c.MCQPos ) );
+			double MCQN = Double.parseDouble( new DecimalFormat("#0.0#").format( c.MCQNev ) );
 
 			String NRMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualNormalisedMark ) )+"";
 			if( !multiSession )
 			     NRMark = "0.0";
 
-			System.out.println(c.rollNumber+","+c.info.applicationId+","+NRMark+","+c.GATEScore+","+c.rank+","+rMark+","+c.MCQRank+","+mcqMark+","+c.NATRank+","+natMark+","+c.isQualified+","+genCutOff+","+obcCutOff+","+sTsCPwDCutOff);
+			System.out.println(c.rollNumber+","+NRMark+","+c.GATEScore+","+c.rank+","+rMark+","+c.MCQRank+","+mcqMark+","+c.NATRank+","+natMark+","+MCQP+","+MCQN+","+c.MCQPosC+","+c.MCQNevC);
 		}
 
 
@@ -1927,6 +1977,10 @@ class Candidate {
 	double actualMark;	
 	double rawMark;
 	double MCQMark;
+	double MCQPos;
+	int MCQPosC;
+	double MCQNev;
+	int MCQNevC;
 	double NATMark;
 	double normalisedMark;
 	double actualNormalisedMark;
@@ -1948,6 +2002,11 @@ class Candidate {
 		this.sessionId = sessionId;
 		this.paperCode = paperCode;
 
+
+		this.MCQPos = 0.0d;
+		this.MCQNev = 0.0d;	
+		this.MCQPosC = 0;
+		this.MCQNevC = 0;	
 		this.rawMark = 0.0d;
 		this.MCQMark = 0.0d;
 		this.NATMark = 0.0d;
@@ -1967,6 +2026,15 @@ class Candidate {
 		sections = new TreeSet<String>();
 		sectionWiseMarks = new TreeMap<String, Double>();
 	}
+
+	double getMCQPos(){
+		return this.MCQPos;
+	}
+
+	double getMCQNev(){
+		return this.MCQNev;
+	}
+	
 
 	double getMCQMarks(){
 		return this.MCQMark;
@@ -2035,6 +2103,7 @@ class Candidate {
 			} 	
 		}
 		*/
+
 		this.rawMark = 0.0d;
 		Set<String> sections = sectionWiseMarks.keySet();
 		for(String section: sections){
@@ -2076,7 +2145,7 @@ class Candidate {
 			   output = "";
 			   first = false;
 			   }
-			   */
+			*/
 		}
 		if( output.trim().length() > 1){
 			System.out.format("%-205s |\n",output);
@@ -2486,6 +2555,16 @@ public class ResultProcessing{
 
 							if( question.type().equals("MCQ") ){
 								candidate.MCQMark += mark;
+								if( mark > 0){
+									candidate.MCQPos += mark;
+									candidate.MCQPosC++;
+									
+								}else if ( mark < 0) {
+
+									candidate.MCQNev += Math.abs( mark );
+									candidate.MCQNevC++;
+								}
+								
 							}else if( question.type().equals("NAT") ){
 								candidate.NATMark += mark;
 							}	
