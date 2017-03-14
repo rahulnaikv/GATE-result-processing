@@ -263,6 +263,7 @@ abstract class Question{
 	double unattempted;
 	double invalidResponse;
 	boolean MTA;
+	boolean MTN;
 
 	int R;
 	int NA;
@@ -276,6 +277,10 @@ abstract class Question{
 
 	public boolean isMTA(){
 		return MTA;
+	}
+	
+	public boolean isMTN(){
+		return MTN;
 	}
 
 	abstract double eval(Response response, Candidate candidate);
@@ -333,13 +338,24 @@ class MultipalChocie extends Question{
 		this.perRAT = 0.0d;
 		this.DL = null;
 		this.answers = new ArrayList<String>();
+
 		this.MTA = false;
+		this.MTN = false;
 
 		if( answer.equalsIgnoreCase("can") ){
+
 			this.isCancelled = true;
+
 		}else if( answer.equals("MTA") ){
+
 			this.MTA = true;
 			this.mark = Double.parseDouble( mark );
+
+		}else if( answer.equals("MTN") ){
+
+			this.MTN = true;
+			this.mark = 0.0d;
+
 		}else{
 			this.mark = Double.parseDouble( mark );
 
@@ -389,25 +405,23 @@ class MultipalChocie extends Question{
 	 **/
 
 	double eval( Response response, Candidate candidate ){
+
 		try{	
 			if( response == null ){
 				System.err.println("1. Error response in MCQ( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 				System.exit(0);
 			}
 
-			if( isCancelled ){
+			if( this.MTA ){
 
-				if( Config.cancelled.equals("zero") ){
-					return 0.0d;
-				}else{
-					return ( this.mark / Integer.parseInt( Config.cancelled ) );
-				}
-
-			}else if( this.MTA ){
 				this.AT++;
 				this.R++;
 				return mark;
 
+			}else if( this.MTN ){
+
+				return 0.0d;
+	
 			}else if( response.getAnswer().equals("--") ){   
 				this.NA++;
 				return unattempted;
@@ -458,9 +472,13 @@ class MultipalChocie extends Question{
 	}
 
 	String getAnswers(){
+
 		if( this.MTA ){
 			return "MTA";
+		}else if ( this.MTN ){
+			return "MTN";
 		}
+
 		String tanswer = "";
 		boolean flag = true;
 		for(String answer: answers){
@@ -529,7 +547,6 @@ class RangeQuestion extends Question{
 
 		this.Id = Id;
 		this.section = section;
-		this.isCancelled = false;
 		this.R = 0;
 		this.NA = 0;
 		this.W = 0;
@@ -541,13 +558,20 @@ class RangeQuestion extends Question{
 		this.DL = null;
 
 		this.MTA = false;
+		this.MTN = false;
+
 		this.answers = new ArrayList<Rang>();
 
-		if( answer.equalsIgnoreCase("can") ){
-			this.isCancelled = true;
-		}else if( answer.equals("MTA") ){
+		if( answer.equals("MTA") ){
+
 			this.MTA = true;
 			this.mark = Double.parseDouble( mark );
+
+		}else if ( answer.equals("MTN") ){
+
+			this.MTN = true;
+			this.mark = 0.0d;
+
 		}else{
 			String []tokens = answer.split(";");
 			for(String token: tokens ){
@@ -596,18 +620,15 @@ class RangeQuestion extends Question{
 			System.exit(0);
 		}
 
-		if( this.isCancelled ){
+		if( this.MTA ){
 
-			if( Config.cancelled.equals("zero") ){
-				return 0.0d;
-			}else{
-				return ( this.mark / Integer.parseInt( Config.cancelled ) );
-			}
-
-		}else if( this.MTA ){
 			this.R++;
 			this.AT++;
 			return this.mark;
+
+		}else if( this.MTN ){
+
+			return 0.0d;
 
 		}else if ( response.getAnswer().equals("--") && !response.getOptions().equals("--")){  
 			System.err.println("2. Error response in NAT( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
@@ -688,6 +709,9 @@ class RangeQuestion extends Question{
 		if( this.MTA ){
 			return "MTA";
 		}	
+		else if( this.MTN ){
+			return "MTN";
+		}	
 
 		String tanswers = "";
 		boolean flag = true;
@@ -740,6 +764,7 @@ class Session{
 	double stdDev;
 	double maxRawScore;
 	double minRawScore;
+	double totalMarks;
 
 	int DL1;
 	int DL2;
@@ -764,6 +789,7 @@ class Session{
 		this.zeroPointOnePercent = 0;
 		this.maxRawScore = 0.0d;
 		this.minRawScore = 0.0d;
+		this.totalMarks = 0.0d;
 
 		this.DL1 = 0;
 		this.DL2 = 0;
@@ -788,7 +814,8 @@ class Session{
 		   System.err.println((i+1)+":"+ marks[i] );
 		   }
 		   System.err.println("-------------------------------------");
-		  */			
+
+	        */			
 
 		this.stdDev = StdStats.stddev( marks );
 		this.mTBar = StdStats.mean( marks, 0, zeroPointOnePercent - 1 );
@@ -866,6 +893,7 @@ class Session{
 class Paper{
 
 	String paperCode;
+
 	Map<String, Session> sessionMap;
 	ArrayList<Double> listOfObtainedMarks;
 	ArrayList<Double> listOfNormalisedMarks;	
@@ -2427,6 +2455,7 @@ public class ResultProcessing{
 					}
 
 					paper.addQuestion( qn, question, sessionId );
+					paper.sessionMap.get(sessionId).totalMarks += question.mark;
 				}
 
 				if( paper == null){
@@ -2434,6 +2463,8 @@ public class ResultProcessing{
 					System.out.println("Paper is not proper "+ questionKey);
 					System.exit(0);
 				}
+
+				System.err.println("PaperCode:"+paperCode+", Session:"+sessionId+", Total:"+paper.sessionMap.get(sessionId).totalMarks);
 
 				paperMap.put( paperCode, paper );
 				count++;
@@ -2572,8 +2603,14 @@ public class ResultProcessing{
 						}
 
 						candidate.calculateRawMarks();
+						
+						if( !paper.paperCode.equals("GG") && !paper.paperCode.equals("XE") && !paper.paperCode.equals("XL") ){
+
+							candidate.rawMark = ( (candidate.rawMark / 100 ) * session.totalMarks );
+						}
 
 						candidate.actualMark = candidate.rawMark;
+
 						candidate.rawMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.rawMark ));
   						candidate.MCQMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.MCQMark )); 
 						candidate.NATMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.NATMark )); 
