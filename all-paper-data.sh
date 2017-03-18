@@ -1,0 +1,1 @@
+cat ../result/*/analaysis-view2.txt  | egrep 'Paper Code  | Total Candidates | Max of (mu+sigma,25) |CutOff| Session ID | Scorecard Issu ed|Total | GATE| ________________________________________' | egrep -v 'Attempt | %'

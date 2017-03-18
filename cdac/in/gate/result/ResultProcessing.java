@@ -376,6 +376,7 @@ class MultipalChocie extends Question{
 				this.negative = 0.0d;
 			}else{ 
 				this.negative = -1 * ( this.mark / Integer.parseInt( Config.negative ) );
+				this.negative = Math.ceil( this.negative * 100  ) / 100;
 			}
 
 			if( Config.unattempted.equals("zero") ){
@@ -504,9 +505,13 @@ class Rang{
 
 	Rang(double lower, double upper){
 
-		this.lower = lower - (double) Math.pow(10, -6);
-		this.upper = upper + (double) Math.pow(10, -6);	
-
+		if( lower == upper){
+			this.lower = lower - (double) Math.pow(10, -6);
+			this.upper = upper + (double) Math.pow(10, -6);	
+		}else{
+			this.lower = lower;
+			this.upper = upper;
+		}
 	}
 
 	boolean eval(double value){
@@ -583,11 +588,14 @@ class RangeQuestion extends Question{
 
 				double lower = Double.parseDouble( tk[0].trim() );
 				double upper = Double.parseDouble( tk[1].trim() );	
+				
 				if( lower <= upper ){
 					this.answers.add( new Rang(lower, upper) );
 				}else{
 					this.answers.add( new Rang(upper, lower) );
 					System.err.println("Error in Key: "+Id+" Lower: "+lower+" Upper: "+upper);
+					System.exit(0);
+					
 				}	
 			}	
 
@@ -1548,14 +1556,20 @@ class Paper{
 		minRawMarks = StdStats.min( amarks ) ;
 	}	
 
-	void header2(){
-		System.out.println(" ______________________________________________________________________________________________________________________________________________");
-		System.out.println("|        |              |          |                                                                                                           |");
-		System.out.println("| Rank   | Reg-Number   | Raw-Mark | Question wise marks                                                                                       |");
-		System.out.println("|________|______________|__________|___________________________________________________________________________________________________________|");
-	}
-	void footer2(){
-		System.out.println("|________|______________|__________|___________________________________________________________________________________________________________|");
+	void detailsHeader(){
+		System.out.format("AIR, RollNumber, GATEScore, NormalisedMark, RawMark, genCutOff, obcCutOff, sTsCPwDCutOff");
+		Paper paper = ResultProcessing.paperMap.get( paperCode );
+		String sessionId = null;
+		for(String session: paper.sessionMap.keySet()){
+			sessionId = session;
+		}	
+                Session session = paper.sessionMap.get( sessionId );
+		for(int i = 0; i < session.listOfQuestions.size(); i++){
+			System.out.print(", Q"+(i+1));
+		}
+		System.out.println();
+
+		
 	}
 
 	void header1( ){
@@ -1653,7 +1667,7 @@ class Paper{
 
 			}else if ( ! Print.analysis ){
 				if( Print.detail )
-					header2();
+					detailsHeader();
 				else if( Print.actual )
 					header0();
 				else
@@ -1663,12 +1677,13 @@ class Paper{
 					candidate.print();
 				}
 
-				if( Print.detail )
-					footer2();
-				else if( Print.actual )
+				if( Print.actual ){
 					footer0();
-				else
+				}else if( Print.detail ){
+
+				}else{
 					footer1();
+				}
 			}
 		}
 	}
@@ -1693,9 +1708,9 @@ class Paper{
 		System.out.format("| CutOff(GEN)            | %-13.2f |%n", genCutOff );
 		System.out.format("| CutOff(OBC)            | %-13.2f |%n", obcCutOff );
 		System.out.format("| CutOff(ST/SC/PwD)      | %-13.2f |%n", sTsCPwDCutOff );
-		System.out.format("| CutOff(GEN) GATEScore  | %-13d   |%n", genCutOffGate );
-		System.out.format("| CutOff(OBC) GATEScore  | %-13d   |%n", obcCutOffGate );
-		System.out.format("| CutOff(ST/SC/PwD) GATE | %-13d   |%n", sTsCPwDCutOffGate );
+		System.out.format("| CutOff(GEN) GATEScore  | %-13d |%n", genCutOffGate );
+		System.out.format("| CutOff(OBC) GATEScore  | %-13d |%n", obcCutOffGate );
+		System.out.format("| CutOff(ST/SC/PwD) GATE | %-13d |%n", sTsCPwDCutOffGate );
 		System.out.format("|________________________|_______________|%n");
 		System.out.format("| Exclusive GEN          | %-13d |%n", QGenX );
 		System.out.format("| OBC with GEN cutoff    | %-13d |%n", QObcG);
@@ -2187,40 +2202,33 @@ class Candidate {
 
 		if( Print.detail ){
 
-			System.out.format("| %5d  | %-11s  | %-8.2f |", rank, rollNumber, rawMark, actualMark);
+			String paperCode = rollNumber.substring(0,2);
+			String sessionId = rollNumber.substring(5,6);
+
+			Paper paper = ResultProcessing.paperMap.get( paperCode );		
+			Session session = paper.sessionMap.get( sessionId );
+
+			System.out.format("%d, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f, ", rank, rollNumber, GATEScore, normalisedMark, rawMark, paper.genCutOff, paper.obcCutOff, paper.sTsCPwDCutOff);
 			String output = "";
 			boolean first = true;
 			for(int i = 0; i < marks.size(); i++ ){
+
+				Question question = session.listOfQuestions.get(i);
 				String qw = "";
-				if( responses.get(i).answer.equals("--") ){
-					qw = "NA";
+				if( question.type().equals("NAT") ){
+					qw = FP.prints( marks.get(i) )+"|"+responses.get(i).options+"|"+question.getAnswers();
 				}else{
-					qw += ""+FP.prints( marks.get(i) )+"|"+responses.get(i).answer+"|"+responses.get(i).options;
-				}				
+					qw = FP.prints( marks.get(i) )+"|"+responses.get(i).answer+"|"+question.getAnswers();
+
+				}
 
 				if( i == marks.size() - 1)
 					output += ""+qw;
 				else	
-					output += ""+qw+",";
-
-				if( output.length() > 100){
-					if( first ){
-						System.out.format("%-120s |\n",output);
-					}else{
-						System.out.print("|        |                |          |");
-						System.out.format("%-120s |\n",output);
-					}
-					output = "";
-					first = false;
-				}
+					output += ""+qw+", ";
 			}
-			if( output.trim().length() > 1){
-				System.out.print("|        |                |          |");
-				System.out.format("%-120s |\n",output);
 
-			}
-			System.out.println("|________|________________|__________|_________________________________________________________________________________________________________________________|");
-			System.out.println("|        |                |          |                                                                                                                         |");
+			System.out.format("%s\n",output);
 
 		}else{
 
@@ -2382,8 +2390,8 @@ class GATEScore implements Comparator<Candidate>{
 
 public class ResultProcessing{
 
-	Map<String, Paper> paperMap;
-	Map<String, CandidateInfo> candidateInfoMap;
+	static Map<String, Paper> paperMap;
+	static Map<String, CandidateInfo> candidateInfoMap;
 	static boolean analysisView = false;
 	static boolean tableResultView = false;
 	static boolean mcqnat = false;
@@ -2603,11 +2611,13 @@ public class ResultProcessing{
 						}
 
 						candidate.calculateRawMarks();
-						
+					
+						/*	
 						if( !paper.paperCode.equals("GG") && !paper.paperCode.equals("XE") && !paper.paperCode.equals("XL") ){
 
 							candidate.rawMark = ( (candidate.rawMark / 100 ) * session.totalMarks );
 						}
+						*/
 
 						candidate.actualMark = candidate.rawMark;
 
