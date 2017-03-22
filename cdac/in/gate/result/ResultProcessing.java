@@ -1335,32 +1335,14 @@ class Paper{
 				Candidate candidate = sn.listOfCandidate.get(i);
 				if( multiSession ){
 
-					/*
-					   CHANGED 14032014
-					   The actual candidate marks( candidate.actualMark , with -ve), converted to 2 decimal, 
-					   keeping the sign(+ve, -ve) as it is and stored in 'actualMark' 
-					   */
-
 					Double actualMark =   Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.actualMark ));
 
-					/*
-					   CHANGED 14032014
-					   Actual marks is used for calculating candidate Normalised marks.
-
-					 */
-
 					candidate.normalisedMark = ( (mTgBar - mQg) / (sn.mTBar - sn.mQ ) ) * ( actualMark - sn.mQ ) + mQg;
+
 					//System.out.println(" (  ("+mTgBar+" - "+mQg+") / ( "+sn.mTBar +" - "+ sn.mQ +" ) ) * ( "+ actualMark+" - "+sn.mQ+" ) +"+ mQg +" = "+candidate.normalisedMark);
 
 					candidate.actualNormalisedMark = candidate.normalisedMark;
 					candidate.normalisedMark = Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.normalisedMark ));
-
-					/*
-					   CHANGED 14032014
-					   Now candidate actual normalised marks are stored in 'listOfActualNormalisedMarks' for 
-					   "JUST" calculating the minimum NormalisedMarks keeping the sign (+ve,-ve) as it is.
-					   */
-
 					listOfActualNormalisedMarks.add( candidate.normalisedMark );
 
 					if( candidate.normalisedMark >= 0)
@@ -1374,7 +1356,6 @@ class Paper{
 						mQ round off 
 						GATECutOff Double.parseDouble( df.format( mQ ) )
 						candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - mQ ) / ( mTBar - mQ  ) ) );
-
 					*/
 		
 					DecimalFormat df = new DecimalFormat("#0.0");
@@ -1455,10 +1436,8 @@ class Paper{
 
 		DecimalFormat df = new DecimalFormat("#0.0");
 		df.setRoundingMode( RoundingMode.DOWN );
+
 		genCutOff = Double.parseDouble( df.format( mQ ) );
-
-		//XXX: Calculating obcCutOff and sTsCPwDCutOff on genCutOff instead of mQ
-
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
 
@@ -1471,7 +1450,7 @@ class Paper{
 			this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
 		*/
 
-		double _mQ= Double.parseDouble( df.format( mQ ) );
+		double _mQ =  Double.parseDouble( df.format( mQ ) );
 
 		this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
 		this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
@@ -1479,15 +1458,7 @@ class Paper{
 
 		System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
 
-
-
 		maxNorMarks = StdStats.max( marks );
-
-		/*
-		   CHANGED 14032014
-		   listOfActualNormalisedMarks is used for calculating 'minNorMarks' here			
-		*/
-
 		double []amarks = StdStats.toArray( this.listOfActualNormalisedMarks );
 		minNorMarks = StdStats.min( amarks );
 	}
@@ -1501,12 +1472,6 @@ class Paper{
 		maxOf10OR01per = (int) Math.max( zeroPointOnePercent, 10 );
 
 		mTgBar = StdStats.mean( marks, 0, zeroPointOnePercent - 1 );
-
-		/*
-		   for(int i = 0;  i < 186; i++)
-		   System.out.print(marks[i]+" + " );    
-		   System.out.println(" => "+ marks.length);        
-		   */
 
 		mTBar = StdStats.mean( marks, 0, maxOf10OR01per - 1 ); 
 
@@ -1618,8 +1583,7 @@ class Paper{
 
 	void print(boolean log){
 
-
-		if( ResultProcessing.mcqnat){
+		if( ResultProcessing.mcqnat ){
 			rankingMCQNAT( );
 			rankView();
 			return;	
@@ -1915,10 +1879,12 @@ class Paper{
 
 	void resultTableView(){
 
-		System.out.println("RegistrationId, ApplicationId, RawMarks, NormalizedMarks, AIR, Score, IsQualified, GenCutoff, OBCCutoff, SC/ST/PD CuttOff, Optional Sections");
+		System.out.println("registration_id, application_id, raw_marks, normalized_marks, air, score, is_qualified, qual_marks_gen, qual_marks_obc, qual_marks_sc_st_pwd, optional_sections_answered, qrcode, appeared_candidates");
+
 		for(int i = 0; i < listOfCandidate.size(); i++){
 
 			Candidate c = listOfCandidate.get(i);
+			c.qrCode = QRCodeGenerator.getCode();
 
 			if( c.info == null ){
 				System.out.println("Candidate information is msssing");
@@ -1953,10 +1919,12 @@ class Paper{
 			}
 
 			if( sections.trim().length() > 0){
-				System.out.println(sections);
+				System.out.print(sections);
 			}else{
-				System.out.println("");
+				System.out.print("");
 			}
+
+			System.out.println(","+c.qrCode+","+listOfCandidate.size());
 		}
 	}
 
@@ -2176,25 +2144,11 @@ class Candidate {
 				output += ""+qw;
 			else	
 				output += ""+qw+",";
-
-			/*
-			   if( output.length() > 130){
-			   if( first ){
-			   System.out.format("%-120s |\n",output);
-			   }else{
-			   System.out.print("|        |                |          |");
-			   System.out.format("%-120s |\n",output);
-			   }
-			   output = "";
-			   first = false;
-			   }
-			*/
 		}
 		if( output.trim().length() > 1){
 			System.out.format("%-205s |\n",output);
 
 		}
-		System.out.println("|____|_______________|_______|______________________________________________________________________________________________________________________________________________________________________________________________________________|");
 
 	}
 
@@ -2209,10 +2163,10 @@ class Candidate {
 			Session session = paper.sessionMap.get( sessionId );
 
 			System.out.format("%d, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f, ", rank, rollNumber, GATEScore, normalisedMark, rawMark, paper.genCutOff, paper.obcCutOff, paper.sTsCPwDCutOff);
-			String output = "";
-			boolean first = true;
-			for(int i = 0; i < marks.size(); i++ ){
 
+			String output = "";
+
+			for(int i = 0; i < marks.size(); i++ ){
 				Question question = session.listOfQuestions.get(i);
 				String qw = "";
 				if( question.type().equals("NAT") ){
@@ -2272,23 +2226,7 @@ class Candidate {
 
 				}
 			}
-			/*	
-				Iterator<String> itr = sections.iterator();
-				String section = "";
-				boolean first = true;
-				while( itr.hasNext() ){
-				String tsection = itr.next().trim();	
-				if( first ){
-				section = tsection;	
-				first = false;
-				}else if( "GA".equals( tsection ) ) { 	
-				section = tsection+":"+section;	
-				}else{
-				section  = section+":"+tsection;
-				}	
-				}
-				System.out.format("%-9s |%n",section);
-			*/
+
 			System.out.format("%42s |%n",sectionString);
 		}
 	}
