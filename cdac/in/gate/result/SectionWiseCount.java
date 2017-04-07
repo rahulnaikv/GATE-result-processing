@@ -36,7 +36,7 @@ class Counts{
 	static void header(){
 
 		System.out.println("          , , Genral, , , OBC , , , SC , ,  , ST , , , Over All, ");
-		System.out.println("SctionName, App, QGen, QPD, App., QGen, QOBC, App., QGen, QSC, App. QGen, QST, App., Qtot, Qual%%");
+		System.out.println("SctionName, App, QGen, QPD, App., QGen, QOBC, App., QGen, QSC, App., QGen, QST, App., Qtot, Qual%%");
 
 	}
 

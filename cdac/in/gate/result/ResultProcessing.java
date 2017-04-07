@@ -40,6 +40,8 @@ import cdac.in.gate.util.QRCodeGenerator;
 class Config {
 
 	public static String negative = "3";
+	public static String NATdelimeter = "to";
+	public static String MuliAnsdelimeter = ";";
 	public static String cancelled = "zero";
 	public static String unattempted = "zero";	
 	public static String invalidResponse = "zero";
@@ -120,9 +122,9 @@ class CodeMapping{
 
 		sectionCodeMap.put("GG-1", "Geology");
 		sectionCodeMap.put("GP-1", "Geophysics");
+		sectionCodeMap.put("GA",   "General Aptitude");
 
 		sectionCodeMap.put("XE-A", "Engineering Mathematics (Compulsory)");
-
 		sectionCodeMap.put("XE-B", "Fluid Mechanics");
 		sectionCodeMap.put("XE-C", "Materials Science");
 		sectionCodeMap.put("XE-D", "Solid Mechanics");
@@ -130,7 +132,6 @@ class CodeMapping{
 		sectionCodeMap.put("XE-F", "Polymer Science and Engineering");
 		sectionCodeMap.put("XE-G", "Food Technology");
 		sectionCodeMap.put("XE-H", "Atmospheric and Oceanic Science");
-
 
 		sectionCodeMap.put("XL-P", "Chemistry (Compulsory)");
 		sectionCodeMap.put("XL-Q", "Biochemistry");
@@ -284,7 +285,7 @@ abstract class Question{
 	}
 
 	abstract double eval(Response response, Candidate candidate);
-	abstract void printLog( boolean flag );
+	abstract void printDifficulty();
 	abstract void print();
 	abstract String getAnswers();
 	abstract String type();
@@ -359,14 +360,17 @@ class MultipalChocie extends Question{
 		}else{
 			this.mark = Double.parseDouble( mark );
 
-			String[] tokens = answer.split(";");
+			String[] tokens = answer.split( Config.MuliAnsdelimeter );
+
 			for(String token: tokens){
+
 				if( token.trim().length() > 1){
 					System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
 					System.exit(0);
 				}	
 				this.answers.add ( token.trim() );
 			}
+
 			if( this.answers.size() <= 0 ){
 				System.out.println("Master key has error (MCQ): "+answer+" QuestionId: "+Id+" Section :"+section);
 				System.exit(0);
@@ -461,10 +465,7 @@ class MultipalChocie extends Question{
 		System.out.print("]");
 	}
 
-	void printLogHeader(boolean flag){
-		System.out.println("Q.No, Section, Q-type, Attempt, Right, Wrong, No-attempt, %Right, %Wrong, %No-attempt, %Right/Attempt, Dificulty-Level");
-	}
-	void printLog(boolean flag){
+	void printDifficulty(){
 		System.out.println(this.Id+", "+this.section+", "+this.type()+", "+this.AT+", "+this.R+", "+this.W+", "+this.NA+", "+perR+", "+perW+", "+perNA+", "+perRAT+", "+DL);
 	}
 
@@ -578,9 +579,12 @@ class RangeQuestion extends Question{
 			this.mark = 0.0d;
 
 		}else{
-			String []tokens = answer.split(";");
+			String []tokens = answer.split( Config.MuliAnsdelimeter );
+
 			for(String token: tokens ){
-				String[] tk = token.split("to");
+
+				String[] tk = token.split( Config.NATdelimeter );
+
 				if( tk.length != 2) {                                          
 					System.err.println("Error in master key creation "+answer+" QuestionId :"+Id+" Section: "+section);
 					System.exit(0);
@@ -592,10 +596,8 @@ class RangeQuestion extends Question{
 				if( lower <= upper ){
 					this.answers.add( new Rang(lower, upper) );
 				}else{
-					this.answers.add( new Rang(upper, lower) );
 					System.err.println("Error in Key: "+Id+" Lower: "+lower+" Upper: "+upper);
 					System.exit(0);
-					
 				}	
 			}	
 
@@ -708,7 +710,7 @@ class RangeQuestion extends Question{
 		System.out.print("] ");
 	}
 
-	void printLog(boolean flag){
+	void printDifficulty(){
 		System.out.println(this.Id+", "+this.section+", "+this.type()+", "+this.AT+", "+this.R+", "+this.W+", "+this.NA+", "+perR+", "+perW+", "+perNA+", "+perRAT+", "+DL);
 	}
 
@@ -833,7 +835,7 @@ class Session{
 		this.minRawScore = StdStats.min( amarks );
 	}
 
-	void print(){
+	void printDetails(){
 
 		System.out.format(" ________________________________________%n");
 		System.out.format("| Session ID             | %-13s |%n", id);
@@ -850,10 +852,11 @@ class Session{
 
 	}
 
-	void printLog(){
+	void printDifficulty(){
 
-		System.out.println("Q.No, Section, Q-type, Attempt, Right, Wrong, No-attempt, %Right, %Wrong, %No-attempt, %Right/Attempt, Dificulty-Level");
+
 		for(int i = 0;  i < this.listOfQuestions.size(); i++){
+
 			Question question = this.listOfQuestions.get(i);
 			question.perR =  Double.parseDouble( new DecimalFormat("#0.0#").format( (double) (100 / (double) this.listOfCandidate.size() ) * (double) question.R ) );
 			question.perW =  Double.parseDouble( new DecimalFormat("#0.0#").format( (double) (100 / (double) this.listOfCandidate.size() ) * (double) question.W ) );
@@ -876,14 +879,7 @@ class Session{
 				question.DL = "DL5";
 				DL5++;
 			}
-			//System.out.print("Qn:"+(i+1)+" # ");
-			if( i == this.listOfQuestions.size() -1)
-				question.printLog( false );
-			else
-				question.printLog( true );
 		}
-
-		System.out.println();
 		System.out.format(" ________________________________________%n");
 		System.out.format("| D-Level Session        | %-13s |%n", id);
 		System.out.format("|________________________|_______________|%n");
@@ -895,6 +891,12 @@ class Session{
 		System.out.format("| DL4                    | %-13d |%n",DL4 );
 		System.out.format("| DL5                    | %-13d |%n",DL5 );
 		System.out.format("|________________________|_______________|%n%n");
+
+		System.out.println("Q.No, Section, Q-type, Attempt, Right, Wrong, No-attempt, %Right, %Wrong, %No-attempt, %Right/Attempt, Dificulty-Level");
+
+		for(Question question: this.listOfQuestions){
+			question.printDifficulty();
+		}
 	}
 }
 
@@ -1339,8 +1341,6 @@ class Paper{
 
 					candidate.normalisedMark = ( (mTgBar - mQg) / (sn.mTBar - sn.mQ ) ) * ( actualMark - sn.mQ ) + mQg;
 
-					//System.out.println(" (  ("+mTgBar+" - "+mQg+") / ( "+sn.mTBar +" - "+ sn.mQ +" ) ) * ( "+ actualMark+" - "+sn.mQ+" ) +"+ mQg +" = "+candidate.normalisedMark);
-
 					candidate.actualNormalisedMark = candidate.normalisedMark;
 					candidate.normalisedMark = Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.normalisedMark ));
 					listOfActualNormalisedMarks.add( candidate.normalisedMark );
@@ -1362,7 +1362,6 @@ class Paper{
 					double _mQ = Double.parseDouble( df.format( mQ ) );
 
 					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - _mQ ) / ( mTBar - _mQ  ) ) );
-	
 					candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
 
 					if( candidate.GATEScore > 1000 ){
@@ -1394,11 +1393,9 @@ class Paper{
 					double _mQ = Double.parseDouble( df.format( mQ ) );
 
 					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - _mQ ) / ( mTBar - _mQ  ) ) );
-
 					candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
 
-					if( candidate.GATEScore > 1000 )
-					{
+					if( candidate.GATEScore > 1000 ){
 						candidate.GATEScore = 1000;
 					}
 
@@ -1441,15 +1438,6 @@ class Paper{
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
 
-
-		/*
-			CHANGED 20160223
-
-			this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-			this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-			this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
-		*/
-
 		double _mQ =  Double.parseDouble( df.format( mQ ) );
 
 		this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
@@ -1488,15 +1476,6 @@ class Paper{
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
 
-		/*
-			CHANGED on 20160223
-
-			genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-			obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - mQ ) / ( mTBar - mQ  ) ) ) );
-			sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - mQ ) / ( mTBar - mQ  ) ) ) );
-
-		*/
-
 		double _mQ= Double.parseDouble( df.format( mQ ) );
 
 		genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
@@ -1522,137 +1501,74 @@ class Paper{
 	}	
 
 	void detailsHeader(){
+
 		System.out.format("AIR, RollNumber, GATEScore, NormalisedMark, RawMark, genCutOff, obcCutOff, sTsCPwDCutOff");
+
 		Paper paper = ResultProcessing.paperMap.get( paperCode );
+
 		String sessionId = null;
 		for(String session: paper.sessionMap.keySet()){
 			sessionId = session;
 		}	
+
                 Session session = paper.sessionMap.get( sessionId );
 		for(int i = 0; i < session.listOfQuestions.size(); i++){
 			System.out.print(", Q"+(i+1));
 		}
 		System.out.println();
-
-		
 	}
 
-	void header1( ){
-		if( Print.info ){
-			System.out.println(" ____________________________________________________________________________________________________________________________________________________________________________________________");
-			System.out.println("|        |               |                                     |         |          |                 |           |       |       |             |                                            |");
-			System.out.println("| Rank   | Reg-Number    | Name                                | Session | Raw-Mark | NormalisedMarks | GATEScore | CatID | PwD   | Qualified   |      Section                               |");
-			System.out.println("|________|_______________|_____________________________________|_________|__________|_________________|___________|_______|_______|_____________|____________________________________________|");
-		}else{
-			System.out.println(" ________________________________________________________________________________________________________________________");
-			System.out.println("|        |               |         |          |                 |           |                                            |");
-			System.out.println("| Rank   | Reg-Number    |Session  | Raw-Mark | NormalisedMarks | GATEScore |               Section                      |");
-			System.out.println("|________|_______________|_________|__________|_________________|___________|____________________________________________|");
+	void printDifficulty(){
+		for(String sessionId: sessionMap.keySet() ){
+			Session session = sessionMap.get( sessionId );		
+			session.printDetails();
+			session.printDifficulty();
 		}
 	}
 
-	void footer1(){
-		if( Print.info ){
-			System.out.println("|________|_______________|_____________________________________|_________|__________|_________________|___________|_______|_______|_____________|____________________________________________|");
-		}else{
-			System.out.println("|________|_______________|_________|__________|_________________|___________|____________________________________________|");
-		}
+	void printMCQNATAnalysis(){
+		rankingMCQNAT( );
+		rankView();
 	}
 
-	void footer0( ){
-		if( Print.info ){		
-			System.out.println("|________|______________|____________________|__________|_____________|_________________|_________________|___________|__________________|_______|_______|___________|____________________________________________|");
-		}else{
-			System.out.println("|________|______________|_________|__________|_____________|_________________|___________|__________________|____________________________________________|");
-		}
+	void printTableResultView(){
+		ranking();
+		resultTableView();
 	}
 
-	void header0( ){
-		if( Print.info ){
-			System.out.println(" _________________________________________________________________________________________________________________________________________________________________________________________________________________________");
-			System.out.println("|        |               |                                     |         |          |             |                 |           |                  |       |       |           |                                            |");
-			System.out.println("| Rank   | Reg-Number    | Name                                | Session | Raw-Mark | Actual-Mark | NormalisedMarks | GATEScore | Actual GATEScore | CatID | Pwd   | Qualified |                 Section                    |");
-			System.out.println("|________|_______________|_____________________________________|_________|__________|_____________|_________________|___________|__________________|_______|_______|___________|____________________________________________|");
-		}else{
-			System.out.println(" ________________________________________________________________________________________________________________________________________________________");
-			System.out.println("|        |              |         |          |             |                 |           |                  |                                            |");
-			System.out.println("| Rank   | Reg-Number   | Session | Raw-Mark | Actual-Mark | NormalisedMarks | GATEScore | Actual GATEScore |                 Section                    |");
-			System.out.println("|________|______________|_________|__________|_____________|_________________|___________|__________________|____________________________________________|");
-		}
+	void printResultView(){
+		ranking();
+		details();
+		resultView();
+	}
+	
+	void printScoreView(){
+		ranking();
+		details();
+		scoreView();
 	}
 
-	void print(boolean log){
-
-		if( ResultProcessing.mcqnat ){
-			rankingMCQNAT( );
-			rankView();
-			return;	
-		}
+	void printApplicantDetails(){
 
 		ranking();
-
-		if( ResultProcessing.tableResultView ){
-			resultTableView();
-			return;
+		System.out.print("PaperCode, Rank, RegistrationId, Session, GATEScore, actualGATEScore, rawMarks, actualMark, normalisedMark, GENCutOff, OBCCuffOff, SC/ST/PwDCuttOff, Category, PwD-Status, isQualified, Sections");	
+		String sessionId = null;
+		for(String session: sessionMap.keySet()){
+			sessionId = session;
+		}	
+                Session session = sessionMap.get( sessionId );
+		for(int i = 0; i < session.listOfQuestions.size(); i++){
+			System.out.print(", Q"+(i+1));
 		}
+		System.out.println();
 
-		print();
-
-		Iterator it = sessionMap.entrySet().iterator();
-		if( log ){
-			System.out.format(" ________________________________________%n");
-			System.out.format("|                                        |%n");
-			System.out.format("|              Log Print                 |%n");
-			System.out.format("|________________________________________|%n");
-		}
-
-		while( it.hasNext() ){
-
-			Map.Entry pairs = (Map.Entry)it.next();
-			Session session = (Session) pairs.getValue();
-			session.print();
-			if( log ){
-				session.printLog( );
-			}
-		}
-
-		if( !log ){ 
-
-			if( Print.resultView ){
-
-				System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, opt_1_sec, opt_2_sec, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
-				printResultView();
-				return;
-
-			}else if( Print.scoreView ){
-				System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec1, Sec1-Name, sec2, Sec2-Name, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff, Gen-GATEScoreCuttoff, OBC-GATEScoreCuttoff, SCSTPwD-GATEScoreCuttoff");
-				printScoreView();
-				return;
-
-			}else if ( ! Print.analysis ){
-				if( Print.detail )
-					detailsHeader();
-				else if( Print.actual )
-					header0();
-				else
-					header1();
-				for(int i = 0; i < listOfCandidate.size(); i++){
-					Candidate candidate = listOfCandidate.get(i);
-					candidate.print();
-				}
-
-				if( Print.actual ){
-					footer0();
-				}else if( Print.detail ){
-
-				}else{
-					footer1();
-				}
-			}
+		for(int i = 0; i < listOfCandidate.size(); i++){
+			Candidate candidate = listOfCandidate.get(i);
+			candidate.print();
 		}
 	}
 
-	void print(){
+	void details(){
 
 		System.out.format(" ________________________________________%n");
 		System.out.format("| Paper Code             | %-13s |%n", paperCode);
@@ -1748,7 +1664,9 @@ class Paper{
 
 
 
-	void printResultView(){
+	void resultView(){
+
+		System.out.println("Registration_id, Enrollment_id, applicant_name, category_id, is_pd, Paper-Code, Paper-Name, Sec-1, Sec-2, Sec-3, Sec-4, RawMarks, Normalized-Marks, AIR, GATE-Score, is_qualified, genCutOff, obcCutOff, sTsCPwDCutOff, Gender");
 
 		for(int i = 0; i < listOfCandidate.size(); i++){
 			Candidate c = listOfCandidate.get(i);
@@ -1764,34 +1682,40 @@ class Paper{
 				NRMark = "Not Applicable";
 			System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.info.name+", "+CodeMapping.categoryMap.get(c.info.category)+", "+c.info.isPd+", "+c.paperCode+", "+CodeMapping.paperCodeMap.get( c.paperCode.trim() ));
 
-			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") )  ){
+			if( c.sections.size() > 0 ){
+
 				Iterator<String> itr = c.sections.iterator();
 				int count = 0;
-
 				while( itr.hasNext() ){
 
 					String section = itr.next();
-					if( "GA".equals(section) || "XE-A".equals(section) || "XL-P".equals(section) || "GG-C".equals(section) )
-						continue;
 					System.out.print(", "+section.substring(section.indexOf("-") + 1));	
 					count++;
 				}	
+
 				if( count == 0){
-					System.out.print(",  , ");
-				}
-				else if( count == 1){	
+					System.out.print(", , , , ");
+				}else if( count == 1){
+					System.out.print(", , , ");
+				}else if( count == 2){
+					System.out.print(", , ");
+				}else if( count == 3){
 					System.out.print(", ");
 				}
+
 			}
 			else{
-				System.out.print(",  , ");
+				System.out.print(", , , , ");
 			}
+
 			double rMark = Double.parseDouble( new DecimalFormat("#0.0#").format( c.actualMark ) );
 			System.out.println(", "+rMark+", "+NRMark+", "+c.rank+", "+c.GATEScore+", "+c.isQualified+", "+genCutOff+", "+obcCutOff+", "+sTsCPwDCutOff+", "+c.info.gender);
 		}
 	}
 
-	void printScoreView(){
+	void scoreView(){
+
+	        System.out.println("Registration_id, Enrollment_id, QRCode, GATE-Year,GATE-PaperCode, Paper-Name, Sec-1, Sec-2, Sec-3, Sec-4, Candidate-Name, Number-of-Candidate-appeared, RawMarks, NorMarks, GATEScore, AIR, category, PwD, Scribe, DigitalFingerPrint, Gen-cutoff, OBC-cutoff, SCSTPwD_Cutoff, Gen-GATEScoreCuttoff, OBC-GATEScoreCuttoff, SCSTPwD-GATEScoreCuttoff");
 
 		for(int i = 0; i < listOfCandidate.size(); i++){
 
@@ -1812,28 +1736,25 @@ class Paper{
 
 			System.out.print(c.rollNumber+", "+c.info.applicationId+", "+c.qrCode.trim()+", 2017, "+c.paperCode+", "+CodeMapping.paperCodeMap.get(c.paperCode.trim()));
 
-			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") ) ){
+
+			if( c.sections.size() > 0 ){
 
 				Iterator<String> itr = c.sections.iterator();
 				int count = 0;
-
 				while( itr.hasNext() ){
-
 					String section = itr.next().trim();
-
-					if("GA".equals(section) || "XE-A".equals(section) || "XL-P".equals(section)|| "GG-C".equals(section) )
-						continue;
-
 					count++;
-					System.out.print(", "+section+", "+CodeMapping.sectionCodeMap.get( section ));
+					System.out.print(", "+section);
 				}
 
 				if ( count == 0){
 					System.out.print(", , , , ");
-				}
-
-				if( count == 1 ) {
+				}else if( count == 1){
+					System.out.print(", , , ");
+				}else if( count == 2){
 					System.out.print(", , ");
+				}else if( count == 3){
+					System.out.print(", ");
 				}
 
 			}
@@ -1852,6 +1773,7 @@ class Paper{
 	void rankView(){
 
 		System.out.println("RegistrationId, NormalizedMarks, GATE-Score, AIR, RawMarks, MCQ-Rank, MCQ-Mraks, NAT-Rank, NAT-Marks, MCQ-Positive, MCQ-Negative, MCQ Correct-Count, MCQ Negative-Count");
+
 		for(int i = 0; i < listOfCandidate.size(); i++){
 
 			Candidate c = listOfCandidate.get(i);
@@ -1879,7 +1801,7 @@ class Paper{
 
 	void resultTableView(){
 
-		System.out.println("registration_id, application_id, raw_marks, normalized_marks, air, score, is_qualified, qual_marks_gen, qual_marks_obc, qual_marks_sc_st_pwd, optional_sections_answered, qrcode, appeared_candidates");
+		System.out.println("registration_id, application_id, raw_marks, normalized_marks, air, score, is_qualified, qual_marks_gen, qual_marks_obc, qual_marks_sc_st_pwd, Sections, qrcode, appeared_candidates");
 
 		for(int i = 0; i < listOfCandidate.size(); i++){
 
@@ -1900,20 +1822,19 @@ class Paper{
 
 			String sections = "";
 
-			if( c.sections.size() > 0 && ( c.paperCode.equals("XL") || c.paperCode.equals("GG") || c.paperCode.equals("XE") ) ){
+			if( c.sections.size() > 0 ){
 
 				Iterator<String> itr = c.sections.iterator();
+
 				int count = 0;
 
 				while( itr.hasNext() ){
 					String section = itr.next().trim();
-					if( "GA".equals(section) || "XE-A".equals(section)|| "XL-P".equals(section)|| "GG-C".equals(section))
-						continue;
 					count++;
 					if( "GP-1".equals(section ) )	
 						sections += "2 "; 
 					else
-						sections += section.substring( section.indexOf("-")+1)+" "; 
+						sections += section.substring( section.indexOf("-") + 1 ) +" "; 
 				}
 				sections = sections.trim().replaceAll(" ", ":");
 			}
@@ -1925,15 +1846,6 @@ class Paper{
 			}
 
 			System.out.println(","+c.qrCode+","+listOfCandidate.size());
-		}
-	}
-
-	void printLog(){
-		Iterator it = sessionMap.entrySet().iterator();
-		while( it.hasNext() ){
-			Map.Entry pairs = (Map.Entry)it.next();
-			Session session = (Session) pairs.getValue();
-			session.printLog();
 		}
 	}
 }
@@ -2122,120 +2034,55 @@ class Candidate {
 		} 	
 	}
 
+	void print(){
 
-	void printTop(){
+		String paperCode = rollNumber.substring(0,2);
+		String sessionId = rollNumber.substring(5,6);
 
-		System.out.println("|    |               |       |                                                                                                                                                                                                              |");
-		System.out.format("|%3d | %-11s | %-2.2f |", rank, rollNumber, rawMark, actualMark);
-		String output = "";
-		boolean first = true;
-		for(int i = 0; i < marks.size(); i++ ){
-			String qw = "";
-			if( responses.get(i).answer.equals("--") ){
-				qw = "-";
+		Paper paper = ResultProcessing.paperMap.get( paperCode );		
+		Session session = paper.sessionMap.get( sessionId );
+
+		System.out.print(paperCode+","+rank+","+rollNumber+","+sessionId+","+GATEScore+","+actualGATEScore+","+rawMark+","+actualMark+","+normalisedMark+","+paper.genCutOff+","+paper.obcCutOff+","+paper.sTsCPwDCutOff+","+CodeMapping.categoryMap.get( info.category )+","+info.isPd+","+isQualified );
+
+		Set<String> sections = sectionWiseMarks.keySet();
+		String sectionString = "";
+		boolean first =  true;
+		for(String section: sections){
+
+			if( section.equals("GA") ){
+				sectionString =  section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section )))+") : "+sectionString;
+			}	
+			else if( first ){	
+				sectionString += section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
+				first = false;
 			}else{
-				if( responses.get(i).answer.equals("1"))
-					qw +=""+responses.get(i).options;
-				else
-					qw +=""+responses.get(i).answer;
-			}				
 
+				sectionString += ":"+section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
+			}
+		}
+		System.out.print(","+sectionString);
+
+		String output = "";
+
+		for(int i = 0; i < marks.size(); i++ ){
+
+			Question question = session.listOfQuestions.get(i);
+
+			String qw = "";
+
+			if( question.type().equals("NAT") ){
+				qw = FP.prints( marks.get(i) )+"|"+responses.get(i).options+"|"+question.getAnswers();
+			}else{
+				qw = FP.prints( marks.get(i) )+"|"+responses.get(i).answer+"|"+question.getAnswers();
+
+			}
 			if( i == marks.size() - 1)
 				output += ""+qw;
 			else	
-				output += ""+qw+",";
-		}
-		if( output.trim().length() > 1){
-			System.out.format("%-205s |\n",output);
-
+				output += ""+qw+", ";
 		}
 
-	}
-
-	void print(){
-
-		if( Print.detail ){
-
-			String paperCode = rollNumber.substring(0,2);
-			String sessionId = rollNumber.substring(5,6);
-
-			Paper paper = ResultProcessing.paperMap.get( paperCode );		
-			Session session = paper.sessionMap.get( sessionId );
-
-			System.out.format("%d, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f, ", rank, rollNumber, GATEScore, normalisedMark, rawMark, paper.genCutOff, paper.obcCutOff, paper.sTsCPwDCutOff);
-
-			String output = "";
-
-			for(int i = 0; i < marks.size(); i++ ){
-				Question question = session.listOfQuestions.get(i);
-				String qw = "";
-				if( question.type().equals("NAT") ){
-					qw = FP.prints( marks.get(i) )+"|"+responses.get(i).options+"|"+question.getAnswers();
-				}else{
-					qw = FP.prints( marks.get(i) )+"|"+responses.get(i).answer+"|"+question.getAnswers();
-
-				}
-
-				if( i == marks.size() - 1)
-					output += ""+qw;
-				else	
-					output += ""+qw+", ";
-			}
-
-			System.out.format("%s\n",output);
-
-		}else{
-
-			String NrScore = normalisedMark+"";
-
-			if( !Print.multiSession ){
-				NrScore = "Not Applicable";
-			}
-
-			if( info != null){
-
-				if( Print.actual ){
-					System.out.format("| %5d  | %-11s | %-35s | %-7s | %-8.2f | %-11f | %-15s | %-9d | %-16f | %-5s | %-5b | %-9b | ", rank, rollNumber, info.name, sessionId, rawMark, actualMark, NrScore , GATEScore, actualGATEScore, info.category, info.isPd, isQualified);
-				}else{
-					System.out.format("| %5d  | %-11s | %-35s | %-7s | %-8.2f | %-15s | %-9d |  %-4s | %-5b | %-11b | ", rank, rollNumber, info.name, sessionId, rawMark, NrScore, GATEScore, CodeMapping.categoryMap.get(info.category), info.isPd, isQualified );
-				}
-			}else{
-
-				if( Print.actual ){
-					System.out.format("| %5d  | %-11s | %-7s | %-8.2f | %-11f | %-15.2f | %-9d | %-16f | ", rank, rollNumber, sessionId, rawMark, actualMark, normalisedMark, GATEScore, actualGATEScore);
-				}else{
-					System.out.format("| %5d  | %-11s | %-7s | %-8.2f | %-15.2f | %-9d | ", rank, rollNumber, sessionId, rawMark, normalisedMark, GATEScore );
-				}
-
-			}
-
-			Set<String> sections = sectionWiseMarks.keySet();
-			String sectionString = "";
-			boolean first =  true;
-			for(String section: sections){
-
-				if( section.equals("GA") ){
-					sectionString =  section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section )))+"):"+sectionString;
-				}	
-				else if( first ){	
-					sectionString += section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
-					first = false;
-				}else{
-
-					sectionString += ":"+section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
-
-				}
-			}
-
-			System.out.format("%42s |%n",sectionString);
-		}
-	}
-
-	void printInfo(){
-
-		String output =  rank+", "+rollNumber+" ,"+sessionId+", "+rawMark+", "+actualMark+", "+normalisedMark+", "+GATEScore+", "+actualGATEScore+", "+CodeMapping.categoryMap.get(info.category)+", "+info.isPd+", "+isQualified;
-		output += ", "+info.print()+", "+qrCode+", "+digitalFP;
-		System.out.println( output.trim() );
+		System.out.println(","+output);
 	}
 }
 
@@ -2330,9 +2177,6 @@ public class ResultProcessing{
 
 	static Map<String, Paper> paperMap;
 	static Map<String, CandidateInfo> candidateInfoMap;
-	static boolean analysisView = false;
-	static boolean tableResultView = false;
-	static boolean mcqnat = false;
 
 	ResultProcessing(){
 		paperMap = new HashMap<String, Paper>();
@@ -2620,17 +2464,77 @@ public class ResultProcessing{
 		}
 	}
 
-	void print( boolean log ){
+	void printMCQNATAnalysis(){
 
 		Iterator it = paperMap.entrySet().iterator();
-
 		if( candidateInfoMap.size() > 0)
 			Print.info = true;
 
 		while ( it.hasNext() ) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			Paper paper = (Paper) pairs.getValue();
-			paper.print( log );
+			paper.printMCQNATAnalysis();
+		}
+	}
+
+	void printDifficulty(){
+
+		Iterator it = paperMap.entrySet().iterator();
+		if( candidateInfoMap.size() > 0)
+			Print.info = true;
+
+		while ( it.hasNext() ) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			Paper paper = (Paper) pairs.getValue();
+			paper.printDifficulty();
+		}
+	}
+
+	void printResultView(){
+		Iterator it = paperMap.entrySet().iterator();
+		if( candidateInfoMap.size() > 0)
+			Print.info = true;
+
+		while ( it.hasNext() ) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			Paper paper = (Paper) pairs.getValue();
+			paper.printResultView();
+		}
+	}
+
+	void printTableResultView(){
+		Iterator it = paperMap.entrySet().iterator();
+		if( candidateInfoMap.size() > 0)
+			Print.info = true;
+
+		while ( it.hasNext() ) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			Paper paper = (Paper) pairs.getValue();
+			paper.printTableResultView();
+		}
+	}
+
+	void printScoreView(){
+		Iterator it = paperMap.entrySet().iterator();
+		if( candidateInfoMap.size() > 0)
+			Print.info = true;
+
+		while ( it.hasNext() ) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			Paper paper = (Paper) pairs.getValue();
+			paper.printScoreView();
+		}
+	}
+
+	void printApplicantDetails(){
+		Iterator it = paperMap.entrySet().iterator();
+		if( candidateInfoMap.size() > 0)
+			Print.info = true;
+
+		while ( it.hasNext() ) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			Paper paper = (Paper) pairs.getValue();
+			paper.printApplicantDetails();
 		}
 	}
 
@@ -2655,20 +2559,21 @@ public class ResultProcessing{
 		}
 	}
 
-	void analysis(){
 
+	void questionAnalysis( int view ){
 		Iterator it = paperMap.entrySet().iterator();
 		while ( it.hasNext() ) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			Paper paper = (Paper) pairs.getValue();
+			paper.ranking();
 			Iterator itr = paper.sessionMap.entrySet().iterator();
 			Analysis analysis = null; 
-
 			while( itr.hasNext() ){
+
 				Map.Entry tpairs = (Map.Entry) itr.next();
 				Session session = ( Session ) tpairs.getValue();
 				analysis = new Analysis(); 
-				analysis.PaperAnalyis( session );	
+				analysis.PaperAnalyis( session, view );	
 			}
 		}
 	}
@@ -2678,17 +2583,18 @@ public class ResultProcessing{
 		for(Candidate candidate: session.listOfCandidate ){
 
 			for(String section: candidate.sections ){
+
 				SectionWiseCount swc = sectionAnalysis.get( section );
 				if( swc == null){
 					swc = new SectionWiseCount( section );		
 				}
 				swc.counts.appOver++;	
-				//System.out.println( candidate.isQualified +", "+candidate.rawMark+", "+paper.genCutOff);
+
 				if( candidate.isQualified ){
 
 					swc.counts.Qtot++;	
 
-					if( "1".equals( candidate.info.category ) ){
+					if( "1".equals( candidate.info.category ) || "GEN".equals( candidate.info.category )  ){
 
 						swc.counts.appGen++;		
 						swc.counts.QGen++;		
@@ -2696,19 +2602,22 @@ public class ResultProcessing{
 							swc.counts.QPD++;
 						}
 
-					}else if( "2".equals( candidate.info.category ) ){
+					}else if( "2".equals( candidate.info.category ) || "OBC".equals( candidate.info.category ) ){
+
 						swc.counts.appObc++;
 						swc.counts.QObc++;
 						if( candidate.rawMark >= paper.genCutOff  || candidate.normalisedMark > paper.genCutOff )
 							swc.counts.QGenObc++;
 
-					}else if( "3".equals( candidate.info.category ) ){
+					}else if( "3".equals( candidate.info.category ) || "SC".equals( candidate.info.category ) ){
+
 						swc.counts.appSc++;
 						swc.counts.QSc++;
 						if( candidate.rawMark >= paper.genCutOff  || candidate.normalisedMark > paper.genCutOff )
 							swc.counts.QGenSc++;
 
-					}else if( "4".equals( candidate.info.category ) ){
+					}else if( "4".equals( candidate.info.category ) || "ST".equals( candidate.info.category ) ){
+
 						swc.counts.appSt++;
 						swc.counts.QSt++;
 						if( candidate.rawMark >= paper.genCutOff  || candidate.normalisedMark > paper.genCutOff )
@@ -2716,19 +2625,20 @@ public class ResultProcessing{
 					}
 
 				}else{
-					if( "1".equals( candidate.info.category ) ){
+					if( "1".equals( candidate.info.category ) || "GEN".equals( candidate.info.category ) ){
 						swc.counts.appGen++;		
 
-					}else if( "2".equals( candidate.info.category ) ){
+					}else if( "2".equals( candidate.info.category ) || "OBC".equals( candidate.info.category ) ){
 						swc.counts.appObc++;
 
-					}else if( "3".equals( candidate.info.category ) ){
+					}else if( "3".equals( candidate.info.category ) || "SC".equals( candidate.info.category ) ){
 						swc.counts.appSc++;
 
-					}else if( "4".equals( candidate.info.category ) ){
+					}else if( "4".equals( candidate.info.category ) || "ST".equals( candidate.info.category ) ){
 						swc.counts.appSt++;
 					}
 				}
+
 				sectionAnalysis.put( section, swc );
 			}
 		}
@@ -2750,22 +2660,32 @@ public class ResultProcessing{
 				sectionAnalysis( session, sectionAnalysis, paper );	
 			}
 		}
+
 		Counts.header();
 		for(String section: sectionAnalysis.keySet() ){
 			sectionAnalysis.get( section ).print();
 		}
+
 	}
 
 	public static void main(String[] args){
 
 		try{
 
-			boolean log = false;
 			String resFile =  null;
 			String keyFile = null;
 			String applicantFile = null;
 			String configFile = null;
+
 			boolean sectionAnalysis = false;	
+			boolean difficulty = false;
+			boolean resultView = false;
+			boolean tableResultView = false;
+			boolean mcqnat = false;
+			boolean scoreView = false;
+			boolean questionAnalysis = false;
+			boolean detailsView = false;
+			int view = 1;
 			int i = 0;
 
 			while( i < args.length ){
@@ -2784,23 +2704,28 @@ public class ResultProcessing{
 				}else if( args[i].equals("-c") ){
 					configFile =  args[i+1].trim();
 					i++;	
-				}else if( args[i].equals("-l") ){
-					log = true;
-				}else if( args[i].equals("-a") ){
-					Print.actual = true;
-				}else if( args[i].equals("-d") ){
-					Print.detail = true;
+				}else if( args[i].equals("-dl") ){
+					difficulty = true;
+				}else if( args[i].equals("-dv") ){
+					detailsView = true;
+				}else if ( args[i].equals("-qa" ) ) {
+					questionAnalysis = true;
+					try{
+						view = Integer.parseInt( args[i+1].trim() );
+						i++;
+					}catch(Exception e){
+					
+					}
+	
 				}else if(  args[i].equals("-rv") ){
-					Print.resultView = true;
+					resultView = true;
 				}else if( args[i].equals("-sv" ) ){
-					Print.scoreView = true;
-				}else if ( args[i].equals("-av") ){
-					analysisView = true;
+					scoreView = true;
 				}else if ( args[i].equals("-rt") ){
 					tableResultView = true;
 				}else if ( args[i].equals("-sa")  ){
 					sectionAnalysis = true;
-				}else if( args[i].equals("-qnt") ){
+				}else if( args[i].equals("-qn") ){
 					mcqnat = true;
 				}			
 
@@ -2811,17 +2736,14 @@ public class ResultProcessing{
 
 				System.out.println("Uses: -k <key-file> -r <response-file> -c[optional] <config-file> [ -ap <applicant-file> ]  -l -a -f");
 
-				System.out.println("-l Printing of Question Deatils (Difficulty Level) ");
-				System.out.println("-a Printing Actual Marks (Without Floor or Ceiling)");
-				System.out.println("-d Detail Question wise marks for each applicant");
-				System.out.println("-an Top 100 Analysis of question");
+				System.out.println("-dl Printing of Question Deatils (Difficulty Level) ");
+				System.out.println("-dv Detail Question wise marks for each applicant");
+				System.out.println("-qa [1 - view1, 2 - view2]Top 100 Analysis of question");
 				System.out.println("-sv Candidate Score View");
 				System.out.println("-rv Candidate result View");
-				System.out.println("-av Question Analysis View");
 				System.out.println("-rt Result Table View");
 				System.out.println("-sa Section Analysis View");
-				System.out.println("-qnt MCQ/NAT based ranking view");
-				System.out.println("[optional attribute ] ");
+				System.out.println("-qn MCQ/NAT based ranking view");
 				System.exit(0);
 			}
 
@@ -2831,13 +2753,22 @@ public class ResultProcessing{
 
 			if( sectionAnalysis ){	
 				rp.sectionAnalysis();
-			}else{
-				rp.print( log  );
+			}else if( difficulty ) {
+				rp.printDifficulty();
+			}else if ( questionAnalysis ){
+				rp.questionAnalysis( view );
+			}else if ( resultView ){
+				rp.printResultView();
+			}else if ( scoreView ){
+				rp.printScoreView();
+			}else if ( tableResultView ){
+				rp.printTableResultView();
+			}else if ( mcqnat ) {
+				rp.printMCQNATAnalysis();
+			}else if ( detailsView ){
+				rp.printApplicantDetails();
 			}
 
-			if( Print.analysis && !sectionAnalysis){
-				rp.analysis();
-			}
 
 		}catch(Exception e){
 			e.printStackTrace();

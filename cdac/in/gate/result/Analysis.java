@@ -41,11 +41,12 @@ class QuestionReport{
 		wrong = 0;
 	}	
 
-	static void header(){
+	static void view1header(){
 		System.out.println("Question No , Total Attempt(top 100), Correct Attempt, Correct(%), Wong Attempt, Wrong(%), Correct Answer, Actual Attempts (out, attempt, %)... ");
 	}
 
-	void print( boolean flag){
+	void view1(){
+
 
 		Map<String, Integer> answersMap = new TreeMap<String, Integer>();
 
@@ -60,7 +61,7 @@ class QuestionReport{
 			}
 		}
 
-		if (wrong > correct ){
+		if ( (wrong > correct) || (attempt < 30) ){
 
 			DecimalFormat formatter = new DecimalFormat("00.00");
 			String corrper = formatter.format((float)(( (float) correct / attempt ) * 100));
@@ -68,6 +69,7 @@ class QuestionReport{
 			System.out.print(question.Id+", "+attempt+", "+correct+", "+ corrper+"%, "+wrong+", "+wronper+"%, "+question.getAnswers());
 
 			Iterator it = answersMap.entrySet().iterator();
+
 			while ( it.hasNext() ) {
 				Map.Entry pairs = (Map.Entry)it.next();
 				String o = (String) pairs.getKey();
@@ -81,7 +83,7 @@ class QuestionReport{
 
 	}
 
-	void print(){
+	void view2(){
 
 		Map<String, Integer> answersMap = new TreeMap<String, Integer>();
 
@@ -96,7 +98,7 @@ class QuestionReport{
 			}
 		}
 
-		if( wrong >  correct){
+		if( (wrong >  correct) || (attempt < 30 ) ){
 
 			Iterator it = answersMap.entrySet().iterator();
 			String option = null;
@@ -137,21 +139,15 @@ public class Analysis{
 
 	Map<Integer, QuestionReport> qReports = new TreeMap<Integer, QuestionReport>();
 
-	void PaperAnalyis(Session session){
+	void PaperAnalyis(Session session, int view){
 
 		Collections.sort( session.listOfCandidate, new RawMarksComp() );
 		System.out.println();
 		System.out.println("[ Session "+session.id+" Question Analysis ]");
 
-		if( ResultProcessing.analysisView )
-			System.out.println(" ___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________");
-
 		for(int i = 0; i < 100; i++){
 
 			Candidate can = session.listOfCandidate.get(i);
-
-			if( ResultProcessing.analysisView )
-				can.printTop();
 
 			for(int j = 0; j < can.responses.size(); j++){
 				Response response =  can.responses.get(j);	
@@ -182,23 +178,23 @@ public class Analysis{
 				qReports.put( key, report );
 			}
 		}
-		print();
+		print( view );
 	}		
 
-	void print(){
+	void print(int view){
 
-		if( ResultProcessing.analysisView )
-			QuestionReport.header();
+		if( view == 1){
+			QuestionReport.view1header();
+		}
 
 		Iterator it = qReports.entrySet().iterator();
-
 		while ( it.hasNext() ) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			QuestionReport qr = (QuestionReport) pairs.getValue();
-			if( ResultProcessing.analysisView )
-				qr.print( true );
+			if( view == 1)
+				qr.view1();
 			else
-				qr.print( );
+				qr.view2();
 		}      
 	}
 }
