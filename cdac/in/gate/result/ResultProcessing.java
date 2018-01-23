@@ -41,7 +41,7 @@ class Config {
 
 	public static String negative = "3";
 	public static String NATdelimeter = "to";
-	public static String MuliAnsdelimeter = ";";
+	public static String MuliAnsdelimeter = "or";
 	public static String cancelled = "zero";
 	public static String unattempted = "zero";	
 	public static String invalidResponse = "zero";
@@ -189,7 +189,7 @@ class DigitalSignature{
 
 	public static String getDigitalSignature(String message){
 
-		String salt = "2017gAtE";
+		String salt = "gAtE2018";
 		message = message+""+salt;
 		md.reset();
 		md.update( message.getBytes() );
@@ -379,8 +379,7 @@ class MultipalChocie extends Question{
 			if( Config.negative.equals("zero") ){
 				this.negative = 0.0d;
 			}else{ 
-				this.negative = -1 * ( this.mark / Integer.parseInt( Config.negative ) );
-				this.negative = Math.ceil( this.negative * 100  ) / 100;
+				this.negative = (-1 * this.mark)/3;
 			}
 
 			if( Config.unattempted.equals("zero") ){
@@ -424,9 +423,7 @@ class MultipalChocie extends Question{
 				return mark;
 
 			}else if( this.MTN ){
-
 				return 0.0d;
-	
 			}else if( response.getAnswer().equals("--") ){   
 				this.NA++;
 				return unattempted;
@@ -637,9 +634,7 @@ class RangeQuestion extends Question{
 			return this.mark;
 
 		}else if( this.MTN ){
-
 			return 0.0d;
-
 		}else if ( response.getAnswer().equals("--") && !response.getOptions().equals("--")){  
 			System.err.println("2. Error response in NAT( "+Id+" ) for "+candidate.rollNumber+": Options: <"+response.getOptions()+"> Answer: <"+response.getAnswer()+">");	
 			System.exit(0);
@@ -763,9 +758,9 @@ class Session{
 
 	ArrayList <Double> listOfObtainedMarks;
 	ArrayList <Double> listOfActualMarks;
-
-	ArrayList <Question> listOfQuestions;
 	ArrayList <Candidate> listOfCandidate;
+
+	Map<Integer, Question> listOfQuestions;
 
 	String id;
 	double mTBar;
@@ -787,10 +782,11 @@ class Session{
 	Session(String id){
 
 		this.id = id;
-		this.listOfQuestions = new ArrayList<Question>();
 		this.listOfObtainedMarks = new ArrayList<Double>();
 		this.listOfActualMarks = new ArrayList<Double>();
 		this.listOfCandidate = new ArrayList<Candidate>();
+
+		this.listOfQuestions = new TreeMap<Integer, Question>();
 
 		this.mTBar = 0.0d;
 		this.mQ = 0.0d;
@@ -855,9 +851,10 @@ class Session{
 	void printDifficulty(){
 
 
-		for(int i = 0;  i < this.listOfQuestions.size(); i++){
+		for(Integer que: this.listOfQuestions.keySet() ){
 
-			Question question = this.listOfQuestions.get(i);
+			Question question = this.listOfQuestions.get( que );
+
 			question.perR =  Double.parseDouble( new DecimalFormat("#0.0#").format( (double) (100 / (double) this.listOfCandidate.size() ) * (double) question.R ) );
 			question.perW =  Double.parseDouble( new DecimalFormat("#0.0#").format( (double) (100 / (double) this.listOfCandidate.size() ) * (double) question.W ) );
 			question.perNA = Double.parseDouble( new DecimalFormat("#0.0#").format( (double) (100 / (double) this.listOfCandidate.size() ) * (double) question.NA ) );
@@ -880,6 +877,7 @@ class Session{
 				DL5++;
 			}
 		}
+
 		System.out.format(" ________________________________________%n");
 		System.out.format("| D-Level Session        | %-13s |%n", id);
 		System.out.format("|________________________|_______________|%n");
@@ -894,8 +892,8 @@ class Session{
 
 		System.out.println("Q.No, Section, Q-type, Attempt, Right, Wrong, No-attempt, %Right, %Wrong, %No-attempt, %Right/Attempt, Dificulty-Level");
 
-		for(Question question: this.listOfQuestions){
-			question.printDifficulty();
+		for(Integer que: this.listOfQuestions.keySet() ){		
+			this.listOfQuestions.get( que ).printDifficulty();
 		}
 	}
 }
@@ -995,6 +993,7 @@ class Paper{
 	Paper(String paperCode){
 
 		this.sessionMap = new TreeMap<String, Session>();
+
 		this.listOfObtainedMarks = new ArrayList<Double>();
 		this.listOfNormalisedMarks = new ArrayList<Double>();
 		this.listOfActualNormalisedMarks = new ArrayList<Double>();	
@@ -1093,6 +1092,7 @@ class Paper{
 		}
 
 		oldMarks = 99999.0d;  
+
 		Collections.sort( listOfCandidate, new NATMarksComp() );
 		for(int i = 0, count = 1, rank = 1; i < listOfCandidate.size(); i++, count++){
 			Candidate candidate = listOfCandidate.get(i);
@@ -1332,36 +1332,32 @@ class Paper{
 			Session sn = (Session) pairs.getValue();
 			sn.calStats();
 
+			//System.err.println("sn.mQ: "+sn.mQ +", mQg:"+mQg+", raw: , mTgBar:"+mTgBar+", sn.mTBar:"+sn.mTBar+", "+genCutOff);
+
 			for(int i = 0; i < sn.listOfCandidate.size(); i++){
 
 				Candidate candidate = sn.listOfCandidate.get(i);
+
 				if( multiSession ){
 
-					Double actualMark =   Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.actualMark ));
-
-					candidate.normalisedMark = ( (mTgBar - mQg) / (sn.mTBar - sn.mQ ) ) * ( actualMark - sn.mQ ) + mQg;
+					candidate.normalisedMark = ( (mTgBar - mQg) / (sn.mTBar - sn.mQ ) ) * ( candidate.rawMark - sn.mQ ) + mQg;
 
 					candidate.actualNormalisedMark = candidate.normalisedMark;
 					candidate.normalisedMark = Double.parseDouble( new DecimalFormat("#0.0#").format( candidate.normalisedMark ));
 					listOfActualNormalisedMarks.add( candidate.normalisedMark );
+					listOfNormalisedMarks.add( candidate.normalisedMark );
 
+					/*
+					//Changed for GATE 2018
 					if( candidate.normalisedMark >= 0)
 						listOfNormalisedMarks.add( candidate.normalisedMark );
 					else
 						listOfNormalisedMarks.add( 0.0d );
+					*/
 				}else{
 
-					/*
-						Changed on 2017/02/23
-						mQ round off 
-						GATECutOff Double.parseDouble( df.format( mQ ) )
-						candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - mQ ) / ( mTBar - mQ  ) ) );
-					*/
-		
-					DecimalFormat df = new DecimalFormat("#0.0");
-					double _mQ = Double.parseDouble( df.format( mQ ) );
+					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - genCutOff ) / ( mTBar - genCutOff ) ) );
 
-					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - _mQ ) / ( mTBar - _mQ  ) ) );
 					candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
 
 					if( candidate.GATEScore > 1000 ){
@@ -1372,27 +1368,23 @@ class Paper{
 		}
 
 		if( multiSession ){
+
 			calStatsAfterNormalisation();
+
 			it = sessionMap.entrySet().iterator();
+
 			while( it.hasNext() ){
+
 				Map.Entry pairs = (Map.Entry)it.next();
+
 				Session sn = (Session) pairs.getValue();
 
 				for(int i = 0; i < sn.listOfCandidate.size(); i++){
+
 					Candidate candidate = sn.listOfCandidate.get(i);
 
-					/*
-						Changed on 2017/02/23
-						mQ round off 
-						GATECutOff Double.parseDouble( df.format( mQ ) )
-						candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.rawMark  - mQ ) / ( mTBar - mQ  ) ) );
+					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - genCutOff ) / ( mTBar - genCutOff ) ) );
 
-					*/
-					
-					DecimalFormat df = new DecimalFormat("#0.0");
-					double _mQ = Double.parseDouble( df.format( mQ ) );
-
-					candidate.actualGATEScore = ( SQ + ( ST - SQ ) * ( ( candidate.normalisedMark  - _mQ ) / ( mTBar - _mQ  ) ) );
 					candidate.GATEScore = (int) Math.round( candidate.actualGATEScore );
 
 					if( candidate.GATEScore > 1000 ){
@@ -1412,7 +1404,7 @@ class Paper{
 			session = new Session( sessionNo );
 			sessionMap.put( sessionNo, session );
 		}
-		session.listOfQuestions.add( qn, question );
+		session.listOfQuestions.put( qn, question );
 	}
 
 	void calStatsAfterNormalisation(){
@@ -1440,11 +1432,12 @@ class Paper{
 
 		double _mQ =  Double.parseDouble( df.format( mQ ) );
 
-		this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
-		this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
-		this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - _mQ ) / ( mTBar - _mQ  ) ) ) );
-
-		System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
+		/*
+			this.genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
+			this.obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
+			this.sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - _mQ ) / ( mTBar - _mQ  ) ) ) );
+			System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
+		*/
 
 		maxNorMarks = StdStats.max( marks );
 		double []amarks = StdStats.toArray( this.listOfActualNormalisedMarks );
@@ -1475,14 +1468,13 @@ class Paper{
 		genCutOff = Double.parseDouble( df.format( mQ ) );
 		obcCutOff = Double.parseDouble( df.format( genCutOff * 0.9 ) );
 		sTsCPwDCutOff = Double.parseDouble( df.format( genCutOff * (2.0/3.0) ) );
-
-		double _mQ= Double.parseDouble( df.format( mQ ) );
-
-		genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
-		obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - _mQ ) / ( mTBar - _mQ  ) ) ) );
-		sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - _mQ ) / ( mTBar - _mQ  ) ) ) );
-
-		System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
+		
+		/*
+			genCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( genCutOff  - genCutOff ) / ( mTBar - genCutOff  ) ) ) );
+			obcCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( obcCutOff  - genCutOff ) / ( mTBar - genCutOff  ) ) ) );
+			sTsCPwDCutOffGate = (int) Math.round( ( SQ + ( ST - SQ ) * ( ( sTsCPwDCutOff - genCutOff ) / ( mTBar - genCutOff  ) ) ) );
+			System.err.println(paperCode+", "+genCutOffGate+", "+obcCutOffGate+", "+sTsCPwDCutOffGate);
+		*/
 
 		if( sessionMap.size() > 1)
 			multiSession = true;
@@ -1599,13 +1591,10 @@ class Paper{
 		System.out.format("| PwD with GEN cutoff    | %-13d |%n", QPwDG);
 		System.out.format("|________________________|_______________|%n");
 		System.out.format("| Exclusive OBC          | %-13d |%n", QObcX );
-		//				System.out.format("| GEN with OBC cutoff    | %-13d |%n", QGenObcB);
 		System.out.format("| SC with OBC cutoff     | %-13d |%n", QSCObcB);
 		System.out.format("| ST with OBC cutoff     | %-13d |%n", QSTObcB);
 		System.out.format("| PwD with OBC cutoff    | %-13d |%n", QPwDObcB);
 		System.out.format("|________________________|_______________|%n");
-		//				System.out.format("| PwD with SC cutoff     | %-13d |%n", QPwDScB);
-		//				System.out.format("| PwD with ST cutoff     | %-13d |%n", QPwDStB);
 		System.out.format("| Exclusive SC           | %-13d |%n", QScX );
 		System.out.format("| Exclusive ST           | %-13d |%n", QStX );
 		System.out.format("| Exclusive PD           | %-13d |%n", QPwDX );
@@ -1884,6 +1873,34 @@ class CandidateInfo{
 	}
 }
 
+class SectionWiseMarks{
+	
+	double marks;
+	double positive;
+	int oneMarksNeg;
+	int twoMarksNeg;
+	
+	SectionWiseMarks(){
+		this.marks = 0.0d;
+		this.positive = 0.0d;
+		this.oneMarksNeg = 0;
+		this.twoMarksNeg = 0;
+	}
+	
+	void calculate(){
+
+		this.marks = this.positive;
+
+		if( this.oneMarksNeg > 0){
+			this.marks = this.marks - ( (double) (this.oneMarksNeg * 1) / 3 );
+		}
+		if( this.twoMarksNeg > 0){
+			this.marks = this.marks - ( (double) (this.twoMarksNeg * 2) / 3 );
+		}
+	}
+	
+}
+
 
 class Candidate {
 
@@ -1900,22 +1917,29 @@ class Candidate {
 	double actualMark;	
 	double rawMark;
 	double MCQMark;
+
 	double MCQPos;
-	int MCQPosC;
 	double MCQNev;
+
+	int MCQPosC;
 	int MCQNevC;
+	
+	int oneMarkNegCount;
+	int twoMarkNegCount;
+
 	double NATMark;
 	double normalisedMark;
 	double actualNormalisedMark;
 	int GATEScore;
 	double actualGATEScore;
-	Map<String, Double> sectionWiseMarks;
+	Map<String, SectionWiseMarks> sectionWiseMarks;
 
 	String digitalFP;
 	String qrCode;	
 
-	List<Double> marks;
-	List<Response> responses;
+	Map<Integer, Double> marks;
+	Map<Integer, Response> responses;
+
 	SortedSet<String> sections;
 
 	Candidate(String rollNumber, String name, String sessionId, String paperCode){
@@ -1930,24 +1954,31 @@ class Candidate {
 		this.MCQNev = 0.0d;	
 		this.MCQPosC = 0;
 		this.MCQNevC = 0;	
+
 		this.rawMark = 0.0d;
 		this.MCQMark = 0.0d;
 		this.NATMark = 0.0d;
+
 		this.actualMark = 0.0d;
 		this.actualGATEScore =  0.0d;
 		this.GATEScore =  0;
 		this.normalisedMark = 0.0d;
+
 		this.rank = -1;
 		this.MCQRank = -1;
 		this.NATRank = -1;
 
+		this.oneMarkNegCount = 0;
+		this.twoMarkNegCount = 0;	
+
 		this.digitalFP = null;
 		this.qrCode = null;
 
-		marks = new ArrayList<Double>();
-		responses = new ArrayList<Response>();
+		marks = new TreeMap<Integer, Double>();
+		responses = new TreeMap<Integer, Response>();
+
 		sections = new TreeSet<String>();
-		sectionWiseMarks = new TreeMap<String, Double>();
+		sectionWiseMarks = new TreeMap<String, SectionWiseMarks>();
 	}
 
 	double getMCQPos(){
@@ -1981,57 +2012,17 @@ class Candidate {
 
 	void calculateRawMarks(){
 
-		/*
-		if(this.paperCode.equals("GG") ){	
-
-			this.sections = new TreeSet<String>();
-			this.rawMark = 0.0d;
-
-			if( sectionWiseMarks.get( "GA" ) != null ){
-				this.rawMark += sectionWiseMarks.get( "GA" );
-			}
-
-			if ( sectionWiseMarks.get( "GG-C" ) != null  ){	
-				this.rawMark += sectionWiseMarks.get( "GG-C" );
-			}
-
-			this.sections.add("GA");
-			this.sections.add("GG-C");
-
-			if( sectionWiseMarks.get( "GG-1" ) != null && sectionWiseMarks.get( "GP-1" ) != null ){
-
-				if( sectionWiseMarks.get( "GG-1" ) > sectionWiseMarks.get( "GP-1" ) ){
-					this.rawMark += sectionWiseMarks.get( "GG-1" );
-					this.sections.add("GG-1");
-				}else{
-					this.rawMark += sectionWiseMarks.get( "GP-1" );
-					this.sections.add("GP-1");
-				}
-
-			}else if ( sectionWiseMarks.get( "GG-1" ) != null ){
-				this.rawMark += sectionWiseMarks.get( "GG-1" );
-				this.sections.add("GG-1");
-
-			}else if ( sectionWiseMarks.get( "GP-1" ) != null ){
-				this.rawMark += sectionWiseMarks.get( "GP-1" );
-				this.sections.add("GP-1");
-			}
-
-		}else{
-
-			this.rawMark = 0.0d;
-			Set<String> sections = sectionWiseMarks.keySet();
-			for(String section: sections){
-				this.rawMark += sectionWiseMarks.get( section );	
-			} 	
+		for(String section: sectionWiseMarks.keySet() ){
+		   	sectionWiseMarks.get( section ).calculate();
 		}
-		*/
 
-		this.rawMark = 0.0d;
-		Set<String> sections = sectionWiseMarks.keySet();
-		for(String section: sections){
-		    this.rawMark += sectionWiseMarks.get( section );	
-		} 	
+		if( this.oneMarkNegCount > 0 ){
+			this.rawMark = this.rawMark - ( (double) ( this.oneMarkNegCount* 1 ) / 3 );
+		}
+
+		if( this.twoMarkNegCount > 0 ){
+			this.rawMark = this.rawMark - ( (double) ( this.twoMarkNegCount * 2 ) / 3 );
+		}
 	}
 
 	void print(){
@@ -2044,39 +2035,35 @@ class Candidate {
 
 		System.out.print(paperCode+","+rank+","+rollNumber+","+sessionId+","+GATEScore+","+actualGATEScore+","+rawMark+","+actualMark+","+normalisedMark+","+paper.genCutOff+","+paper.obcCutOff+","+paper.sTsCPwDCutOff+","+CodeMapping.categoryMap.get( info.category )+","+info.isPd+","+isQualified );
 
-		Set<String> sections = sectionWiseMarks.keySet();
 		String sectionString = "";
 		boolean first =  true;
-		for(String section: sections){
+		for(String section: sectionWiseMarks.keySet() ){
 
 			if( section.equals("GA") ){
-				sectionString =  section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section )))+") : "+sectionString;
+				sectionString =  section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ).marks ))+") : "+sectionString;
 			}	
 			else if( first ){	
-				sectionString += section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
+				sectionString += section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ).marks ) ) +")";
 				first = false;
 			}else{
 
-				sectionString += ":"+section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ) ) ) +")";
+				sectionString += ":"+section+"("+Double.parseDouble( new DecimalFormat("#0.0#").format( sectionWiseMarks.get( section ).marks ) ) +")";
 			}
 		}
 		System.out.print(","+sectionString);
 
 		String output = "";
 
-		for(int i = 0; i < marks.size(); i++ ){
-
-			Question question = session.listOfQuestions.get(i);
-
+		for(Integer que: marks.keySet() ){
+			Question question = session.listOfQuestions.get( que );
 			String qw = "";
-
 			if( question.type().equals("NAT") ){
-				qw = FP.prints( marks.get(i) )+"|"+responses.get(i).options+"|"+question.getAnswers();
+				qw = FP.prints( marks.get( que ) )+"|"+ responses.get( que ).options+"|"+question.getAnswers();
 			}else{
-				qw = FP.prints( marks.get(i) )+"|"+responses.get(i).answer+"|"+question.getAnswers();
+				qw = FP.prints( marks.get( que ) )+"|"+ responses.get( que ).answer+"|"+question.getAnswers();
 
 			}
-			if( i == marks.size() - 1)
+			if( que == marks.size() )
 				output += ""+qw;
 			else	
 				output += ""+qw+", ";
@@ -2157,6 +2144,7 @@ class RawMarksComp implements Comparator<Candidate>{
 
 
 class GATEScore implements Comparator<Candidate>{
+
 	@Override
 	public int compare(Candidate candidate1, Candidate candidate2) {
 		if( candidate1.getGATEScore() < candidate2.getGATEScore() )
@@ -2183,82 +2171,69 @@ public class ResultProcessing{
 		candidateInfoMap = new HashMap<String, CandidateInfo>();
 	}
 
-	void readKey(String file){
+	void readKey(String file, boolean header ){
 
 		try{
 			BufferedReader br = new BufferedReader(new FileReader( new File(file)) );
-			String questionType = null;
-			String sectionName = null;
-			String questionKey = null;
-			String questionMarks = null;
-			String negativeMarks = null;
-
-			boolean firstline = true;
+			String paperCode = null;
+			Paper paper = null;
+			String line = null;
 			int count = 0;
-			while( ( questionType = br.readLine() ) != null ){
+			while( ( line =  br.readLine() ) != null ){
 
-				if( firstline ){
-					firstline = false;
+				if( header ){
+
+					String [] token = line.split(",");
+					paperCode = token[6].trim();
+					paper = paperMap.get( paperCode );
+
+					if( paper == null ){
+					    paper = new Paper( paperCode );
+					}
+
+					header = false;
 					continue;
 				}
 
-				sectionName = br.readLine();
-				questionKey = br.readLine();
-				questionMarks = br.readLine();
+				String [] token = line.split(",");
+				int queNo = Integer.parseInt( token[0].trim() );
 
-				//System.out.println("QT=> "+ questionType );
-				//System.out.println("SN=> "+ sectionName );
-				//System.out.println("KY=> "+ questionKey );
-				//System.out.println("mK=> "+ questionMarks );
+				String session = token[1].trim();
+				String queType = token[2].trim();
+				String section = token[3].trim();
+				String key = token[4].trim();
+				String marks = token[5].trim(); 
 
-				String[] typeToken = questionType.split(",");
-				String[] sectionToken = sectionName.split(",");
-				String[] keyToken =  questionKey.split(",");
-				String[] marksToken =  questionMarks.split(",");
+				Question question  =  null;					
+				String questionId = "Q"+(queNo);
 
-				String paperCode = typeToken[1].trim().substring(0,2);
-				String sessionId = typeToken[2].trim();
-
-				Paper paper = paperMap.get( paperCode );
-
-				if( paper == null )
-					paper = new Paper( paperCode );
-
-				for(int i = 3, qn = 0; i < typeToken.length; i++, qn++ ){
-
-					Question question  =  null;					
-					String questionId = "Q"+(i-2);
-
-					if( (i-2) < 10)
-						questionId = "Q0"+(i-2);
-
-					if( typeToken[i].equals("MCQ")  ){
-						question = new MultipalChocie(questionId, sectionToken[i].trim(), keyToken[i].trim(), marksToken[i].trim() );
-					}else if( typeToken[i].equals("NAT")  ){
-						question = new RangeQuestion(questionId, sectionToken[i].trim(), keyToken[i].trim(), marksToken[i].trim() );
-					}
-
-					if( question == null ){
-						System.out.println( typeToken[i] );
-						System.out.println("Question is not proper "+ questionKey);
-						System.exit(0);
-					}
-
-					paper.addQuestion( qn, question, sessionId );
-					paper.sessionMap.get(sessionId).totalMarks += question.mark;
+				if( queNo  < 10 ){
+					questionId = "Q0"+(queNo);
 				}
 
-				if( paper == null){
+				if( queType.equals("MCQ")  ){
+					question = new MultipalChocie( questionId, section, key, marks );
+				}else if( queType.equals("NAT")  ){
+					question = new RangeQuestion(questionId, section, key, marks );
+				}
 
-					System.out.println("Paper is not proper "+ questionKey);
+				if( question == null ){
+					System.out.println("Question is not proper Paper:"+paperCode+", "+questionId+", Key: "+key);
 					System.exit(0);
 				}
 
-				System.err.println("PaperCode:"+paperCode+", Session:"+sessionId+", Total:"+paper.sessionMap.get(sessionId).totalMarks);
+				paper.addQuestion( queNo, question, session );
+				paper.sessionMap.get( session ).totalMarks += question.mark;
 
-				paperMap.put( paperCode, paper );
 				count++;
 			}
+
+			if( paper == null){
+				System.out.println("Paper is not proper "+ paperCode);
+				System.exit(0);
+			}
+			paperMap.put( paperCode, paper );
+			System.err.println("PaperCode: "+paperCode+", questions:"+count+" reading done");
 
 		}catch(Exception e){
 			e.printStackTrace();
@@ -2276,6 +2251,7 @@ public class ResultProcessing{
 	}
 
 	void readCandidateInfo(String filename, boolean header){
+
 		try{
 
 			BufferedReader br = new BufferedReader(new FileReader( new File(filename) ) );
@@ -2307,11 +2283,13 @@ public class ResultProcessing{
 			BufferedReader br = new BufferedReader(new FileReader( new File(file) ) );
 
 			/* Reading metadata BEGIN */
+
 			br.readLine();
 			br.readLine();
 			br.readLine();
 			br.readLine();
 			br.readLine();
+
 			/* Reading metadata END */
 
 			while( (line = br.readLine()) != null ){
@@ -2349,33 +2327,59 @@ public class ResultProcessing{
 
 						if( ci != null ){
 							candidate.info = ci;
-
 						}
 
-						for(int i = 0, r = 12; i < session.listOfQuestions.size(); i++, r++){
+						for(int que = 1, res = 12; que <= session.listOfQuestions.size(); que++, res++){
 
-							Response response = new Response( rtoken[r], otoken[r] );
-							Question question = session.listOfQuestions.get(i);
+							Response response = new Response( rtoken[res], otoken[res] );
+							Question question = session.listOfQuestions.get( que );
+
 							double mark = question.eval( response, candidate );
 
-							candidate.responses.add(i, response );
-							candidate.marks.add( mark );
+							candidate.responses.put( que, response );
+
+							if( mark >= 0 ){ // non-negative marks optained
+
+							    	candidate.marks.put( que, mark );
+							    	candidate.rawMark += mark;
+
+							}else{
+							    	candidate.marks.put( que, mark );
+
+								if( question.mark == 1.0d){
+									candidate.oneMarkNegCount++;
+								}else if ( question.mark == 2.0d ){
+									candidate.twoMarkNegCount++;
+								}
+							}
 
 							if( question.isMTA() || isAttempted( response ) ) { 
 
-								Double marks = candidate.sectionWiseMarks.get( question.section );	
-								if( marks == null){
-									marks = new Double(0);
+								SectionWiseMarks swmarks = candidate.sectionWiseMarks.get( question.section );	
+
+								if( swmarks == null){
+									swmarks = new SectionWiseMarks();
 								}
-								marks += mark;
-								candidate.sectionWiseMarks.put( question.section, marks );	
+
+								if( mark >= 0 ){
+									swmarks.positive += mark;
+								}else{
+									if( question.mark == 1.0d){
+										swmarks.oneMarksNeg++;
+									}else if ( question.mark == 2.0d ){
+										swmarks.twoMarksNeg++;
+									}
+								}
+
+								candidate.sectionWiseMarks.put( question.section, swmarks );	
 								candidate.sections.add( question.section );
 							}
 
-							candidate.rawMark += mark;
 
 							if( question.type().equals("MCQ") ){
+
 								candidate.MCQMark += mark;
+
 								if( mark > 0){
 									candidate.MCQPos += mark;
 									candidate.MCQPosC++;
@@ -2403,12 +2407,15 @@ public class ResultProcessing{
 
 						candidate.actualMark = candidate.rawMark;
 
-						candidate.rawMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.rawMark ));
-  						candidate.MCQMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.MCQMark )); 
-						candidate.NATMark = Double.parseDouble(new DecimalFormat("#0.0#").format(candidate.NATMark )); 
+						candidate.rawMark = Double.parseDouble( new DecimalFormat("#0.0#").format(candidate.rawMark ));
+  						candidate.MCQMark = Double.parseDouble( new DecimalFormat("#0.0#").format(candidate.MCQMark )); 
+						candidate.NATMark = Double.parseDouble( new DecimalFormat("#0.0#").format(candidate.NATMark )); 
 
-						if( candidate.rawMark <= 0.0d)
+						/*
+						   //GATE 2018 wants to calculate negatives as it is 2018/01/16
+						     if( candidate.rawMark <= 0.0d)
 							candidate.rawMark = 0.0d;
+						*/
 
 						paper.listOfObtainedMarks.add(  candidate.rawMark );
 						paper.listOfCandidate.add(  candidate );
@@ -2417,16 +2424,17 @@ public class ResultProcessing{
 
 						session.listOfActualMarks.add ( candidate.actualMark );
 						paper.listOfActualMarks.add ( candidate.actualMark );
+
 					}else{
-						System.out.println("Session is null!");	
-						System.out.println(line);
-						System.out.println(options);
+						System.err.println("Session is null!");	
+						System.err.println(line);
+						System.err.println(options);
 						System.exit(0);
 					}
 				}else{
-					System.out.println("Paper not found! "+line);
-					System.out.println("Paper Code: "+paperCode);
-					System.out.println("Paper options: "+options);
+					System.err.println("Paper not found! "+line);
+					System.err.println("Paper Code: "+paperCode);
+					System.err.println("Paper options: "+options);
 					System.exit(0);
 				}
 			}
@@ -2541,7 +2549,7 @@ public class ResultProcessing{
 	void read(String keyFile, String resFile, String configFile, String applicantFile){
 
 		readConfig( configFile );
-		readKey( keyFile );
+		readKey( keyFile, true );
 
 		if( applicantFile != null ){
 			readCandidateInfo( applicantFile, true );

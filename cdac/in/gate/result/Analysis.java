@@ -149,9 +149,10 @@ public class Analysis{
 
 			Candidate can = session.listOfCandidate.get(i);
 
-			for(int j = 0; j < can.responses.size(); j++){
-				Response response =  can.responses.get(j);	
-				Question question = session.listOfQuestions.get(j);
+			for(Integer res: can.responses.keySet() ){
+
+				Response response =  can.responses.get( res );	
+				Question question =  session.listOfQuestions.get( res );
 				Integer key = new Integer( question.Id.substring(1) );
 				QuestionReport report = qReports.get( key );
 
